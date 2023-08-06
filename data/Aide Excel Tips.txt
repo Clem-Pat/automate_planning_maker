@@ -1,2 +1,0 @@
-Compte la récurrence d'un mot dans le tableau : =NB.SI(B2:H10;B2)
-
