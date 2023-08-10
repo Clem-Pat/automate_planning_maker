@@ -52,18 +52,22 @@ class Tkinter_window(tk.Tk):
             self.x, self.y = 470, 0
             self.length, self.height = 800, 800
             self.title("Créateur de planning")
-            self.buttons = [Tkinter_button(self, i) for i in range(3)]
-            self.labels = [Tkinter_label(self, i) for i in range(5)]
-            self.scales = [Tkinter_scale(self, i) for i in range(0)]
-            self.canvas = [Tkinter_canvas(self, i) for i in range(1)]
-            self.checkbox = [Tkinter_checkbox(self, i) for i in range(len(self.data.init_names))]
-            self.entrys = [Tkinter_entry(self, i) for i in range(3)]
+            self.frame = Tkinter_frame(self, 0)
+            self.buttons = [Tkinter_button(self.frame, i) for i in range(3)]
+            self.labels = [Tkinter_label(self.frame, i) for i in range(5)]
+            self.scales = [Tkinter_scale(self.frame, i) for i in range(0)]
+            self.canvas = [Tkinter_canvas(self.frame, i) for i in range(1)]
+            self.checkbox = [Tkinter_checkbox(self.frame, i) for i in range(len(self.data.init_names))]
+            self.entrys = [Tkinter_entry(self.frame, i) for i in range(3)]
             self.menu = [Tkinter_menu(self, i) for i in range(1)]
             self.objects = [self.buttons, self.labels, self.canvas, self.checkbox, self.entrys, self.scales]
+            self.offset, self.frame_y, self.frame_y_init = 0, 0, 0
+            self.bind("<MouseWheel>", self._on_mousewheel)
 
         elif self.name == 'crens':
             self.x, self.y = 0, 150
             self.length, self.height = 910, 440
+            if sys.platform == 'darwin': self.length = 1100
             self.title("Créateur de planning > créneaux à remplir")
             self.buttons = [Tkinter_button(self, i) for i in range(36)]
             self.labels = [Tkinter_label(self, i) for i in range(14)]
@@ -135,8 +139,7 @@ class Tkinter_window(tk.Tk):
         print(args[1].x, args[1].y)
 
     def _on_mousewheel(self, event, *args):
-        # self.frames[0].yview_scroll(int(-1 * (event.delta / 120)), "units")
-        if sys.platform == 'darwin': delta = event.delta*10
+        if sys.platform == 'darwin': delta = event.delta*15
         else : delta = event.delta
         if self.offset + delta/5 <= 0:
             self.offset += delta/5
@@ -144,6 +147,7 @@ class Tkinter_window(tk.Tk):
         else:
             self.offset = 0
             self.frame_y = self.frame_y_init
+
         self.frame.place(x=self.frame.x, y=self.frame_y)
 
     def ctrl_z(self, *args):
