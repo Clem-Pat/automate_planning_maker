@@ -493,17 +493,18 @@ class Tkinter_checkbox(tk.Button):
 
         if self.id in range(len(self.app.data.init_names)):
             self.x, self.y = 75, 240 + self.id*30
-            self.bg, self.activebg, self.fg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa','black', 'hand2', 1, self.check
+            self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa','black', 'black', 'hand2', 1, self.check
+            if sys.platform == 'darwin': self.fg, self.activefg = self.bg, self.activebg
             self.text = self.app.data.names[self.id]
             self.config(text=self.text, bg=self.activebg, fg=self.fg, cursor=self.cursor, relief=tk.RAISED, command=self.command, font='Arial 10', width=30, height=1)
 
     def check(self):
         if self['bg'] == self.activebg:
-            self.config(bg=self.bg)
+            self.config(bg=self.bg, fg=self.fg)
             self.state = 0
             self.app.data.names.pop(self.app.data.names.index(self.text))
         else:
-            self.config(bg=self.activebg)
+            self.config(bg=self.activebg, fg=self.activefg)
             self.state = 1
             self.app.data.names.insert(self.id, self.text)
 
