@@ -23,6 +23,17 @@ Cet algorithme permet de créer un planning pour les membres du Foy'z en prenant
 
 Les noms des fichiers et leur chemin d'accès peuvent être choisis à votre convenance.
 
+## Installation
+
+```ruby
+pip install numpy
+pip install pandas
+pip install openpyxl
+pip install xlwings
+pip install xlsxwriter
+pip install selenium
+pip install pillow
+```
 #
 ![Logo](/Ressources/foyz.png)
 
