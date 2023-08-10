@@ -488,10 +488,15 @@ class Tkinter_canvas(tk.Canvas):
                                 rowspan=object.rowspan, pady=object.pady, padx=object.padx)
 
 class Tkinter_checkbox(tk.Button):
-    def __init__(self, app, id):
-        tk.Button.__init__(self)
-        self.app = app
+    def __init__(self, application, id):
+        tk.Button.__init__(self, application)
         self.id = id
+        try:
+            self.app = application
+            self.jours, self.crens = self.app.jours, self.app.crens
+        except:
+            self.app = application.master
+            self.jours, self.crens = self.app.jours, self.app.crens
 
         if self.id in range(len(self.app.data.init_names)):
             self.x, self.y = 75, 240 + self.id*30
@@ -514,7 +519,12 @@ class Tkinter_entry(tk.Entry):
     def __init__(self, application, id):
         tk.Entry.__init__(self, application)
         self.id = id
-        self.app = application
+        try:
+            self.app = application
+            self.jours, self.crens = self.app.jours, self.app.crens
+        except:
+            self.app = application.master
+            self.jours, self.crens = self.app.jours, self.app.crens
         self.config(width=30, font='Arial 12', fg='black')
         if self.id < 2:
             if self.id == 0:
@@ -525,7 +535,7 @@ class Tkinter_entry(tk.Entry):
                 self.insert(0, self.app.data.historic_filename)
                 self.x, self.y = 390, 345
                 self.value, self.default_value = self.app.data.historic_filename, self.app.data.historic_filename
-            self.button = Tkinter_button(self.app, 1000 + self.id, caller=self)
+            self.button = Tkinter_button(self.app.frame, 1000 + self.id, caller=self)
             self.button.place(x=self.button.x, y=self.button.y)
         elif self.id == 2:
             resu = ''
@@ -664,31 +674,14 @@ class Tkinter_frame(tk.Frame):
         self.config(bg='light blue')
         if self.app.name == 'main':
             if self.id == 0:
-                self.x, self.y = 0, 30
-                self.offset, self.frame_x, self.frame_x_init = 0, 0, 0
-
-            if self.id == 1:
-                self.x, self.y = 600, 300
-                self.offset, self.frame_y, self.frame_y_init = 0, 0, 0
-                self.canva = tk.Canvas(self.app, bg='light blue', height=600)
-                resu = ''
-                plan = self.app.main_app.planning
-                nbre_occurence_worker = plan.get_occurence_workers()
-                sorted_dic = dict(sorted(nbre_occurence_worker.items(), key=lambda x: x[1], reverse=True))
-                coeffs_workers = plan.get_coeffs_workers()
-                for worker in sorted_dic:
-                    resu += str(worker.name).ljust(15) + f' : {sorted_dic[worker]}       : {plan.coeffs_workers[worker]}' + '\n'
-                resu += '\n'
-                resu += f'Planning équilibré à {max(list(plan.coeffs_workers.values())) - min(list(plan.coeffs_workers.values()))} coefficients près'
-
-                self.canva.create_text(40, 170, anchor='w', text=resu,
-                                 font='TkFixedFont', fill='navy')
-                self.canva.pack(side=tk.BOTTOM)
-
+                self.height, self.width = self.app.height, self.app.length
+                self.bg = 'blue'
+                self.config(bg='light blue', width=self.width, height=self.height)
+                self.x, self.y = 0, 0
+                self.place(x=self.x, y=self.y)
         elif self.app.name == 'resu':
             if self.id == 0:
                 self.height, self.width = self.app.height, self.app.length
-                self.bg = 'light blue'
                 max_worker_in_cren = self.app.main_app.data.get_max_worker_in_cren()
                 if sys.platform == 'darwin': offset = 150
                 else: offset = 0
@@ -699,25 +692,6 @@ class Tkinter_frame(tk.Frame):
                 elif max_worker_in_cren == 5: self.x, self.y = 10, 0
                 else: self.x, self.y = 0, 0
                 self.place(x=self.x, y=self.y)
-
-    def _on_mousewheel(self, event):
-        if self.id == 0:
-            if self.offset + event.delta / 5 <= self.x:
-                self.offset += event.delta / 5
-                self.frame_x += event.delta / 5
-            else:
-                self.offset = 0
-                self.frame_x = self.frame_x_init
-            self.place(x=self.frame_x, y=self.y)
-
-        elif self.id == 1:
-            if self.offset + event.delta/5 <= self.y:
-                self.offset += event.delta/5
-                self.frame_y += event.delta/5
-            else:
-                self.offset = 0
-                self.frame_y = self.frame_y_init
-            self.canva.place(x=self.x, y=self.frame_y)
 
 class Tkinter_menu(tk.Menu):
     def __init__(self, application, id):
