@@ -9,8 +9,6 @@ from Sender_Manager.sender_manager import Message_sender
 from tkinter.filedialog import askopenfilename, askdirectory
 from PIL import ImageTk, Image
 
-class Tkinter_button(tk.Button):
-    '''Créer les boutons de commande'''
     def __init__(self, application, id, caller=None):
         tk.Button.__init__(self, application)
         try:
@@ -78,18 +76,20 @@ class Tkinter_button(tk.Button):
                 self.bind('<Button-1>', self.valid_crens)
 
         elif self.app.name == 'resu':
+            if sys.platform == 'darwin': offset_x = 100
+            else : offset_x = 0
             if self.id == 0:
                 self.bg, self.fg, self.cursor, self.command, self.state = '#a4deaa', 'black', 'hand2', self.create_excels, 'unclicked'
                 self.config(text='Créer les excels', width=20, height=2, bg=self.bg, fg=self.fg,
                             font='Arial 11 bold', relief=tk.RAISED, cursor=self.cursor, command=self.command)
-                self.x, self.y = 1150, 550
+                self.x, self.y = 1150-offset_x, 550
                 self.button = Tkinter_button(self.app, 1000 + self.id, caller=self)
                 self.button.place(x=self.button.x, y=self.button.y)
             elif self.id == 1:
                 self.bg, self.fg, self.cursor, self.state = 'navy', 'white', 'hand2', 'unclicked'
                 self.config(text='Envoyer les messages', width=20, height=2, bg=self.bg, fg=self.fg,
                             font='Arial 11 bold', relief=tk.RAISED, cursor=self.cursor)
-                self.x, self.y = 1150, 630
+                self.x, self.y = 1150-offset_x, 630
                 self.bind('<Button-1>', self.send_mail)
                 self.bind('<Button-3>', self.send_mail)
             elif self.id >= 1000:
