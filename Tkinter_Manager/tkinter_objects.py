@@ -9,6 +9,8 @@ from Sender_Manager.sender_manager import Message_sender
 from tkinter.filedialog import askopenfilename, askdirectory
 from PIL import ImageTk, Image
 
+class Tkinter_button(tk.Button):
+    '''Créer les boutons de commande'''
     def __init__(self, application, id, caller=None):
         tk.Button.__init__(self, application)
         try:
