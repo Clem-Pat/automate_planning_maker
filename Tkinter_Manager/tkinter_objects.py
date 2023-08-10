@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import numpy as np
 import os
+import subprocess, sys
 from Planning_Manager.planning_manager import The_Planning_Maker, Planning_Filler, Creneau
 from Sender_Manager.sender_manager import Message_sender
 from tkinter.filedialog import askopenfilename, askdirectory
@@ -47,7 +48,7 @@ class Tkinter_button(tk.Button):
             if self.id >= 1000:
                 self.cursor, self.command = 'hand2', self.choose_file
                 img = Image.open("Ressources/folder_icon.png")
-                resized_img = img.resize((20, 20), Image.ANTIALIAS)
+                resized_img = img.resize((20, 20), Image.LANCZOS)
                 photo = ImageTk.PhotoImage(resized_img)
                 self.config(image=photo, cursor='hand2', bg='light blue', font='Arial 11', relief=tk.RAISED, command=self.command)
                 self.image = photo
@@ -94,7 +95,7 @@ class Tkinter_button(tk.Button):
             elif self.id >= 1000:
                 self.cursor, self.command = 'hand2', self.choose_directory
                 img = Image.open("Ressources/folder_icon2.png")
-                resized_img = img.resize((20, 20), Image.ANTIALIAS)
+                resized_img = img.resize((20, 20), Image.LANCZOS)
                 photo = ImageTk.PhotoImage(resized_img)
                 try: self.config(image=photo)
                 except: self.config(text="Choisir\nl'emplacement", fg='navy')
@@ -119,6 +120,12 @@ class Tkinter_button(tk.Button):
                             relief=tk.RAISED, cursor=self.cursor)
                 self.bind('<Button-1>', self.select_worker)
                 self.bind('<Button-3>', self.select_worker)
+
+        if sys.platform == 'darwin':
+            try:
+                self.fg = self.bg
+                self.config(fg=self.fg)
+            except: pass
 
     def show_creneaux(self):
         if self.state == 'unclicked': self.state = 'clicked'
@@ -210,9 +217,11 @@ class Tkinter_button(tk.Button):
                         planning.swap_cren(worker1, worker2, cren1, cren2)
                         self.app.first_worker_selected.worker = worker2
                         self.app.first_worker_selected['bg'] = worker2.color
+                        if sys.platform == 'darwin': self.app.first_worker_selected['fg'] = worker2.color
                         self.app.first_worker_selected['text'] = worker2.name
                         self.worker = worker1
                         self['bg'] = worker1.color
+                        if sys.platform == 'darwin': self['fg'] = worker1.color
                         self['text'] = worker1.name
                         self.app.historic_modifications.append([self.app.first_worker_selected, self])
                         self.app.canvas[1].itemconfig(self.app.canvas[1].text, text=self.app.canvas[1].get_text())
@@ -403,7 +412,10 @@ class Tkinter_label(tk.Label):
 
     def open_file(self, *args):
         path = os.path.realpath(self.file_path_to_open)
-        os.startfile(path, show_cmd=3)
+        try : os.startfile(path, show_cmd=3)
+        except :
+            opener = "open" if sys.platform == 'darwin' else 'xdg-open'
+            subprocess.call([opener, path])
 
 class Tkinter_canvas(tk.Canvas):
     def __init__(self, parent, id):
@@ -675,10 +687,12 @@ class Tkinter_frame(tk.Frame):
                 self.height, self.width = self.app.height, self.app.length
                 self.bg = 'light blue'
                 max_worker_in_cren = self.app.main_app.data.get_max_worker_in_cren()
-                if max_worker_in_cren == 1: self.x, self.y = 500, 0
-                elif max_worker_in_cren == 2: self.x, self.y = 400, 0
-                elif max_worker_in_cren == 3: self.x, self.y = 300, 0
-                elif max_worker_in_cren == 4: self.x, self.y = 150, 0
+                if sys.platform == 'darwin': offset = 150
+                else: offset = 0
+                if max_worker_in_cren == 1: self.x, self.y = 500-offset, 0
+                elif max_worker_in_cren == 2: self.x, self.y = 400-offset, 0
+                elif max_worker_in_cren == 3: self.x, self.y = 300-offset, 0
+                elif max_worker_in_cren == 4: self.x, self.y = 150-offset, 0
                 elif max_worker_in_cren == 5: self.x, self.y = 10, 0
                 else: self.x, self.y = 0, 0
                 self.place(x=self.x, y=self.y)
