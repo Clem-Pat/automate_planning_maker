@@ -135,9 +135,11 @@ class Tkinter_window(tk.Tk):
 
     def _on_mousewheel(self, event, *args):
         # self.frames[0].yview_scroll(int(-1 * (event.delta / 120)), "units")
-        if self.offset + event.delta/5 <= 0:
-            self.offset += event.delta/5
-            self.frame_y += event.delta/5
+        if sys.platform == 'darwin': delta = event.delta*10
+        else : delta = event.delta
+        if self.offset + delta/5 <= 0:
+            self.offset += delta/5
+            self.frame_y += delta/5
         else:
             self.offset = 0
             self.frame_y = self.frame_y_init
