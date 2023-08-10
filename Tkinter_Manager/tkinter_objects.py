@@ -60,7 +60,7 @@ class Tkinter_button(tk.Button):
                 self.row_cren, self.column_cren = self.id//len(matrix[0]), self.id%len(matrix[0])
                 self.row, self.column = self.row_cren + 2, self.column_cren + 1
                 self.columnspan, self.rowspan, self.padx, self.pady = 1, 1, 2, 2
-                self.bg, self.disable_bg, self.fg, self.cursor = 'navy', 'grey', 'white', 'hand2'
+                self.bg, self.disable_bg, self.fg, self.cursor = 'navy', '#C0C0C0', 'white', 'hand2'
                 self.config(text='2', width=10, height=2, bg=self.bg, fg=self.fg,
                             font='Arial 11 bold',
                             relief=tk.RAISED, cursor=self.cursor)
@@ -190,13 +190,21 @@ class Tkinter_button(tk.Button):
         if int(event.num) == 1: coeff = 1
         elif int(event.num) == 3: coeff = -1
         self['text'] = str(max(int(self['text']) + coeff*1, 0))
-        if self['text'] == '0': self['bg'] = self.disable_bg
-        else : self['bg'] = self.bg
+        if self['text'] == '0':
+            self['bg'] = self.disable_bg
+            if sys.platform == 'darwin': self['fg'] = self.disable_bg
+        else :
+            self['bg'] = self.bg
+            if sys.platform == 'darwin': self['fg'] = self.bg
 
     def configure_button(self):
         workers_per_cren = self.app.main_app.data.workers_per_cren
-        if workers_per_cren[self.row_cren][self.column_cren] == 0: self['bg'], self['text'] = self.disable_bg, 0
-        else: self['bg'], self['text'] = self.bg, str(workers_per_cren[self.row_cren][self.column_cren])
+        if workers_per_cren[self.row_cren][self.column_cren] == 0:
+            self['bg'], self['text'] = self.disable_bg, 0
+            if sys.platform == 'darwin': self['fg'] = self.disable_bg
+        else:
+            self['bg'], self['text'] = self.bg, str(workers_per_cren[self.row_cren][self.column_cren])
+            if sys.platform == 'darwin': self['fg'] = self.bg
 
     def select_worker(self, *args):
         try: order = args[0].num
