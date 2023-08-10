@@ -498,7 +498,7 @@ class Tkinter_checkbox(tk.Button):
             self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa','black', 'black', 'hand2', 1, self.check
             if sys.platform == 'darwin': self.fg, self.activefg = self.bg, self.activebg
             self.text = self.app.data.names[self.id]
-            self.config(text=self.text, bg=self.activebg, fg=self.fg, cursor=self.cursor, relief=tk.RAISED, command=self.command, font='Arial 10', width=30, height=1)
+            self.config(text=self.text, bg=self.activebg, fg=self.activefg, cursor=self.cursor, relief=tk.RAISED, command=self.command, font='Arial 10', width=30, height=1)
 
     def check(self):
         if self['bg'] == self.activebg:
