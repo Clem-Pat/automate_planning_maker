@@ -11,9 +11,13 @@ import xlsxwriter
 L_data = [['Lundi8h', '', '', '', '', '', ''], ['', '', '', '', '', '', ''], ['', 'Mardi12h', '', '', '', 'Samedi12', ''], ['', '', '', '', '', '', ''], ['', '', 'Mercredi16h', '', '', '', ''], ['', '', 'Mercredi18h', 'x', '', '', ''], ['', '', '', '', '', 'Samedi20h', ''], ['', '', '', '', '', '', ''], ['Lundi00h', '', 'Mercredi00h', '', '', '', '']]
 """
 class Excel_Reader():
-    def __init__(self, filename='Data/indispo_dispo.xlsx', names=['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain'], type='indispo'):
+    def __init__(self, filename=None, names=['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain'], type='indispo'):
         self.names = names
-        self.filename = filename
+        if filename == None:
+            path = os.path.dirname(os.path.abspath(__file__))
+            self.filename = f"{path[:-16]}/Data/indispo_dispo.xlsx"
+        else:
+            self.filename = filename
         self.type = type
         self.crens, self.jours = ['12h15-13h', '13h-13h30', '17h30-20h30', '20h30-23h', '23h-00h'], ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         self.data_of_names = {}
