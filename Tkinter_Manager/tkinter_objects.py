@@ -66,6 +66,7 @@ class Tkinter_button(tk.Button):
                             font='Arial 11 bold',
                             relief=tk.RAISED, cursor=self.cursor)
                 self.bind('<Button-1>', self.active_cren)
+                self.bind('<Button-2>', self.active_cren)
                 self.bind('<Button-3>', self.active_cren)
                 self.configure_button()
             elif self.id == 35:
@@ -94,6 +95,7 @@ class Tkinter_button(tk.Button):
                             font='Arial 11 bold', relief=tk.RAISED, cursor=self.cursor)
                 self.x, self.y = 1150-offset_x, 630
                 self.bind('<Button-1>', self.send_mail)
+                self.bind('<Button-2>', self.send_mail)
                 self.bind('<Button-3>', self.send_mail)
             elif self.id >= 1000:
                 self.cursor, self.command = 'hand2', self.choose_directory
@@ -123,6 +125,7 @@ class Tkinter_button(tk.Button):
                             font='Arial 10', width=7,
                             relief=tk.RAISED, cursor=self.cursor)
                 self.bind('<Button-1>', self.select_worker)
+                self.bind('<Button-2>', self.select_worker)
                 self.bind('<Button-3>', self.select_worker)
 
         if sys.platform == 'darwin':
@@ -190,7 +193,7 @@ class Tkinter_button(tk.Button):
         event = args[0]
         coeff = 1
         if int(event.num) == 1: coeff = 1
-        elif int(event.num) == 3: coeff = -1
+        elif int(event.num) == 2 or int(event.num) == 3: coeff = -1
         self['text'] = str(max(int(self['text']) + coeff*1, 0))
         if self['text'] == '0':
             self['bg'] = self.disable_bg
@@ -248,7 +251,7 @@ class Tkinter_button(tk.Button):
                     self['relief'] = tk.RAISED
                     self.app.first_worker_selected = None
 
-            elif int(order) == 3:
+            elif int(order) == 2 or int(order) == 3:
                 self.app.first_worker_selected['borderwidth'] = 2
                 self.app.first_worker_selected['relief'] = tk.RAISED
                 self.app.first_worker_selected = None
@@ -286,7 +289,7 @@ class Tkinter_button(tk.Button):
         if int(order) == 1:
             workers = self.app.main_app.planning.workers
             mode = ''
-        elif int(order) == 3 :
+        elif int(order) == 2 or int(order) == 3 :
             mode = f' - mode démo (envoi à {self.app.main_app.data.admin} seulement)'
             for worker in self.app.main_app.planning.workers :
                 if worker.name == self.app.main_app.data.admin:
