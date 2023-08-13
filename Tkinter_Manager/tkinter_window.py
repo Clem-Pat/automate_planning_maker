@@ -8,13 +8,14 @@ from Tkinter_Manager.tkinter_objects import Tkinter_button, Tkinter_label, Tkint
 class Data():
     """Ceci est l'objet regroupant les données par défaut. Chaque donnée peut être modifiée en utilisant l'application."""
     def __init__(self):
+        path = os.path.dirname(os.path.abspath(__file__))
         self.init_names = ['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain']
         self.names = ['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain']
         self.usernames = ['Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio']
         self.colors = ["#3FB2C1", "#9A5454", "#7030A0", "#00FF00", "#008000", "#8EA9DB", "#203764", "#305496", "#FF9900", "#FF00FF", "#CCA434", "#00FF9A", "#FFD700", "#C000C0", "#B22222", "#FF0000"]
         self.admin = 'Tea'
-        self.dispo_filename = 'Data/indispo_dispo.xlsx'
-        self.historic_filename = 'Data/historic.xlsx'
+        self.dispo_filename = f"{path[:-16]}/Data/indispo_dispo.xlsx"
+        self.historic_filename = f"{path[:-16]}/Data/historic.xlsx"
         self.nbre_repetition = 5 #nombre de plannings dans l'échantillon à étudier. On ne gardera que le meilleur planning de l'échantillon
         self.soirees = ['none']
         self.workers_per_cren = [[2,2,2,0,2,0,3], [2,2,2,2,2,0,0], [2,2,2,2,2,2,2], [2,2,2,2,2,2,2], [0,0,0,0,0,0,0]]
