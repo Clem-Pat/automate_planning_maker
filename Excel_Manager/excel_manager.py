@@ -105,15 +105,19 @@ class Excel_Creator():
                 else : message = ''
                 cell_color = workbook.add_format()
                 cell_color.set_bg_color('#a4c2f4')
-                worksheet.write(str(alph[j + 1]) + str(1), self.jours[j])
-                worksheet.write(str(alph[j + 1]) + str(2), message, cell_color)
+                worksheet.write(str(alph[3*j + 2]) + str(1), self.jours[j])
+                for k in range(1, 4): worksheet.write(str(alph[3*j + k]) + str(2), message, cell_color)
                 for w in range(len(self.workers)):
                     worksheet.write(str(alph[0]) + str(w+3), self.workers[w].name)
                     for cren in self.workers[w].crens:
                         if cren.j == j:
                             cell_color = workbook.add_format()
                             cell_color.set_bg_color(cren.color)
-                            worksheet.write(str(alph[j+1]) + str(w+3), cren.text, cell_color)
+                            for k in range(1, 4):
+                                if k == 1: text = cren.text
+                                else: text = ''
+                                worksheet.write(str(alph[3*j+k]) + str(w+3), text, cell_color)
+
             workbook.close()
         elif self.name == 'Planning_for_each_worker':
             self.workers = workers
@@ -152,7 +156,7 @@ class Excel_Modifier():
 
 if __name__ == '__main__':
     names = ['Alice']
-    indispo_dispo_excel = Excel_Reader('./Data/indispo_dispo.xlsx', names)
+    indispo_dispo_excel = Excel_Reader('../Data/indispo_dispo.xlsx', names)
     excel = Excel_Creator(['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'], ['12h15-13h', '13h-13h30', '17h30-20h30', '20h30-23h', '23h-00h'])
     print(indispo_dispo_excel.data_of_names['Alice'])
     excel.create_planning('Alice', indispo_dispo_excel.data_of_names['Alice'])
