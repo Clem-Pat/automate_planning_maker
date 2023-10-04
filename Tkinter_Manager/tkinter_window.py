@@ -137,7 +137,7 @@ class Tkinter_window(tk.Tk):
             self.label_error.place(x=self.label_error.x, y=self.label_error.y)
 
     def get_mouse_position(*args):
-        print(args[1].x, args[1].y)
+        #print(args[1].x, args[1].y)
 
     def _on_mousewheel(self, event, *args):
         if sys.platform == 'darwin': delta = event.delta*15
