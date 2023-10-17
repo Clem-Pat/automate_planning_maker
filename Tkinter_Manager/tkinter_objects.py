@@ -241,7 +241,11 @@ class Tkinter_button(tk.Button):
                         self.app.historic_modifications.append([self.app.first_worker_selected, self])
                         self.app.canvas[1].itemconfig(self.app.canvas[1].text, text=self.app.canvas[1].get_text())
                     else:
-                        messages = [f'{worker1.name} has already a cren in {cren2.jour}', f'{worker1.name} is not available on cren {cren2}', f'{worker1.name} had already menage not a long time ago', f'{worker2.name} has already a cren in {cren1.jour}', f'{worker2.name} is not available on cren {cren1}', f'{worker2.name} had already menage not a long time ago']
+                        messages = [f'{worker1.name} has already a cren on {cren2.jour}', f'{worker2.name} has already a cren on {cren1.jour}',
+                                    f'{worker1.name} is not available on cren {cren2}', f'{worker2.name} is not available on cren {cren1}',
+                                    f'{worker1.name} had already menage not a long time ago', f'{worker2.name} had already menage not a long time ago',
+                                    f'{worker1.name} has already a cleaning the day before or the day after',
+                                    f'{worker2.name} has already a cleaning the day before or the day after']
                         self.app.label_error.show(messages[success.index(False)], fg='red', cursor='arrow', file_to_open=None)
 
                     self.app.first_worker_selected['borderwidth'] = 2
