@@ -11,7 +11,7 @@ class Data():
         path = os.path.dirname(os.path.abspath(__file__))
         self.init_names = ['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain']
         self.names = ['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain']
-        self.usernames = ['Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio', 'Clement Enstalavista Patrizio']
+        self.usernames = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon', 'Arthur Lanaspèze', 'Guillaume Kerjouan', 'Zéphyr Dentzer', 'Noé Parker', 'Thibault Edouard', 'Romain Rnrb', 'Zoé Laurent Iranmehr', 'Benjamin Langle', 'Marie Kintzinger', 'Baptiste Savarit', 'Romain Dupuis'] #username messenger to send private messages
         self.colors = ["#3FB2C1", "#9A5454", "#7030A0", "#00FF00", "#008000", "#8EA9DB", "#203764", "#305496", "#FF9900", "#FF00FF", "#CCA434", "#00FF9A", "#FFD700", "#C000C0", "#B22222", "#FF0000"]
         self.admin = 'Tea'
         self.dispo_filename = f"{path[:-16]}/Data/indispo_dispo.xlsx"
@@ -137,7 +137,7 @@ class Tkinter_window(tk.Tk):
             self.label_error.place(x=self.label_error.x, y=self.label_error.y)
 
     def get_mouse_position(*args):
-        #print(args[1].x, args[1].y)
+        print(args[1].x, args[1].y)
 
     def _on_mousewheel(self, event, *args):
         if sys.platform == 'darwin': delta = event.delta*15
