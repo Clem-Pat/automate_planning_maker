@@ -178,11 +178,12 @@ class Message_sender:
 
 if __name__ == '__main__':
     Bot = Message_sender()
-    # Bot.send_message('Clement', 'Ceci est un message test\n')
-    # Bot.send_gif('Clement', 'dab')
-    names = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon',
-                      'Arthur Lanaspèze', 'Guillaume Kerjouan', 'Zéphyr Dentzer', 'Noé Parker', 'Thibault Edouard',
-                      'Romain Rnrb', 'Zoé Laurent Iranmehr', 'Benjamin Langle', 'Marie Kintzinger', 'Baptiste Savarit',
-                      'Romain Dupuis']
-    for name in names:
-        Bot.get_user_to_send_message_to(name)
+    for name in ['Benjamin Langle']:
+        Bot.send_message(name, 'Je suis un robot stylé enculé\n')
+        Bot.send_gif(name, 'simpson')
+    # # names = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon',
+    #                   'Arthur Lanaspèze', 'Guillaume Kerjouan', 'Zéphyr Dentzer', 'Noé Parker', 'Thibault Edouard',
+    #                   'Romain Rnrb', 'Zoé Laurent Iranmehr', 'Benjamin Langle', 'Marie Kintzinger', 'Baptiste Savarit',
+    #                   'Romain Dupuis']
+    # for name in names:
+    #     Bot.send_message(name, 'Ceci est un message test\n')
