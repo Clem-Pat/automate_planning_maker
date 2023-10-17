@@ -215,7 +215,7 @@ class Planning_Filler():
     def fill_planning(self):
         if self.layer == 1 :
             for k in range(len(self.workers_latest_menage)):
-                self.fill_planning_case(0, 6, worker=self.workers[self.names.index(self.workers_latest_menage[k])], test_1_verified=True, test_2_verified=True, test_3_verified=True)
+                self.fill_planning_case(0, 6, worker=self.workers[self.names.index(self.workers_latest_menage[k])], test_1_verified=True, test_2_verified=True, test_3_verified=True, test_4_verified=True)
 
         for i in range(len(self.crens)):
             for j in range(len(self.jours)):
@@ -242,12 +242,21 @@ class Planning_Filler():
         return self.availabilities[worker_to_affect.name][i][j] == None
 
     def test_3(self, worker_to_affect, i, j):
-        """last time the worker had menage was more than two weeks"""
+        """last time the worker had menage was a long time ago"""
         # print('test_3 :',worker_to_affect.name, self.jours[j], self.crens[i], worker_to_affect.last_time_had_menage)
         if (j == 6 and i == 0):
             return worker_to_affect in self.workers_latest_menage
         else:
             return True
+
+    def test_4(self, worker_to_affect, i, j):
+        """name has already menage the day before or the day after ?"""
+        if ((i == 3 and self.jours[j] not in self.soirees) or i == 4) or (j == 6 and i == 0): #On parle d'un ménage
+            for cren in worker_to_affect.crens:
+                if ((cren.i == 3 and self.jours[cren.j] not in self.soirees) or cren.i == 4) or (cren.j == 6 and cren.i == 0): #le worker a un menage
+                    if cren.j == j-1 or cren.j == j+1: #Le créneau ménage en question est la veille ou le lendemain du créneau à tester
+                        return False
+        return True
 
     def test_swap(self, worker1, worker2, cren1, cren2):
         if cren1.j == cren2.j:
@@ -257,14 +266,16 @@ class Planning_Filler():
             test1_verified2 = self.test_1(worker2, cren1.i, cren1.j)
         test2_verified1 = self.test_2(worker1, cren2.i, cren2.j)
         test3_verified1 = self.test_3(worker1, cren2.i, cren2.j)
+        test4_verified1 = self.test_4(worker1, cren2.i, cren2.j)
         test2_verified2 = self.test_2(worker2, cren1.i, cren1.j)
         test3_verified2 = self.test_3(worker2, cren1.i, cren1.j)
-        if test1_verified1 and test2_verified1 and test3_verified1 :
-            if test1_verified2 and test2_verified2 and test3_verified2 :
+        test4_verified2 = self.test_4(worker2, cren1.i, cren1.j)
+        if test1_verified1 and test2_verified1 and test3_verified1 and test4_verified1:
+            if test1_verified2 and test2_verified2 and test3_verified2 and test4_verified2:
                 return [True]
-        return [test1_verified1, test2_verified1, test3_verified1, test1_verified2, test2_verified2, test3_verified2]
+        return [test1_verified1, test1_verified2, test2_verified1, test2_verified2, test3_verified1, test3_verified2, test4_verified1, test4_verified2]
 
-    def fill_planning_case(self, i, j, worker=None, affect_cren_to_worker=True, test_1_verified=False, test_2_verified=False, test_3_verified=False):
+    def fill_planning_case(self, i, j, worker=None, affect_cren_to_worker=True, test_1_verified=False, test_2_verified=False, test_3_verified=False, test_4_verified=False):
         """
         We can specify a worker to know if the cren would fit the worker. If it does, we can choose if the function does the affectation itself or not.
         Plus, by specifying in args that test_1_verified is True, it makes all the tests but the test_1. Usefull if we want to swap crens from same day."""
@@ -272,7 +283,7 @@ class Planning_Filler():
         list_of_workers_in_priority = self.find_prority_worker()
         if worker == None :  #If we are not trying to fill in the date with a particular worker, we find one that fits the conditions
             n_workers = -1
-            while not(test_1_verified) or not(test_2_verified) or not(test_3_verified):
+            while not(test_1_verified) or not(test_2_verified) or not(test_3_verified) or not(test_4_verified):
                 n_workers += 1
                 if n_workers >= len(list_of_workers_in_priority):
                     # print(self.jours[j], self.crens[i], 'No worker fits the conditions !!')
@@ -282,6 +293,7 @@ class Planning_Filler():
                     test_1_verified = self.test_1(worker_to_affect, i, j)
                     test_2_verified = self.test_2(worker_to_affect, i, j)
                     test_3_verified = self.test_3(worker_to_affect, i, j)
+                    test_4_verified = self.test_4(worker_to_affect, i, j)
             if affect_cren_to_worker:
                 self.resu_general[i][j].append(worker_to_affect)
                 creneau = Creneau([j, i], self.soirees)
@@ -295,7 +307,8 @@ class Planning_Filler():
             if not(test_1_verified) : test_1_verified = self.test_1(worker_to_affect, i, j)
             if not(test_2_verified) : test_2_verified = self.test_2(worker_to_affect, i, j)
             if not(test_3_verified) : test_3_verified = self.test_3(worker_to_affect, i, j)
-            if test_1_verified and test_2_verified and test_3_verified :
+            if not(test_4_verified) : test_4_verified = self.test_4(worker_to_affect, i, j)
+            if test_1_verified and test_2_verified and test_3_verified and test_4_verified:
                 if affect_cren_to_worker: #the user wants th function to do the affectation itself
                     self.resu_general[i][j].append(worker_to_affect)
                     creneau = Creneau([j, i], self.soirees)
@@ -304,7 +317,7 @@ class Planning_Filler():
                     worker_to_affect.historic += creneau.coeff
                 return True
             else:
-                # print(f'the worker {worker_to_affect} does not verify the conditions for {self.jours[j]} {self.crens[i]} ({test_1_verified}, {test_2_verified}, {test_3_verified})')
+                # print(f'the worker {worker_to_affect} does not verify the conditions for {self.jours[j]} {self.crens[i]} ({test_1_verified}, {test_2_verified}, {test_3_verified}, {test_4_verified})')
                 pass
 
     def find_prority_worker(self):
@@ -326,8 +339,8 @@ class Planning_Filler():
 
     def swap_cren(self, worker, worker2, cren1, cren2):
         # print(f'changing : {worker.name} takes {cren2} and {worker2.name} takes {cren1}')
-        self.fill_planning_case(cren1.i, cren1.j, worker2, test_1_verified=True, test_2_verified=True, test_3_verified=True)
-        self.fill_planning_case(cren2.i, cren2.j, worker, test_1_verified=True, test_2_verified=True, test_3_verified=True)
+        self.fill_planning_case(cren1.i, cren1.j, worker2, test_1_verified=True, test_2_verified=True, test_3_verified=True, test_4_verified=True)
+        self.fill_planning_case(cren2.i, cren2.j, worker, test_1_verified=True, test_2_verified=True, test_3_verified=True, test_4_verified=True)
         self.take_out_cren_from_worker(worker, cren1)
         self.take_out_cren_from_worker(worker2, cren2)
         self.coeffs_workers = self.get_coeffs_workers()
