@@ -249,13 +249,14 @@ class Planning_Filler():
         else:
             return True
 
-    def test_4(self, worker_to_affect, i, j):
+    def test_4(self, worker_to_affect, i, j, except_j=None):
         """name has already menage the day before or the day after ?"""
         if ((i == 3 and self.jours[j] not in self.soirees) or i == 4) or (j == 6 and i == 0): #On parle d'un ménage
             for cren in worker_to_affect.crens:
                 if ((cren.i == 3 and self.jours[cren.j] not in self.soirees) or cren.i == 4) or (cren.j == 6 and cren.i == 0): #le worker a un menage
-                    if cren.j == j-1 or cren.j == j+1: #Le créneau ménage en question est la veille ou le lendemain du créneau à tester
-                        return False
+                    if cren.j != except_j: #On fait le test pour tous les créneaux de worker sauf le créneau au jour except_j
+                        if cren.j == j-1 or cren.j == j+1: #Le créneau ménage en question est la veille ou le lendemain du créneau à tester
+                            return False
         return True
 
     def test_swap(self, worker1, worker2, cren1, cren2):
@@ -264,12 +265,17 @@ class Planning_Filler():
         else:
             test1_verified1 = self.test_1(worker1, cren2.i, cren2.j)
             test1_verified2 = self.test_1(worker2, cren1.i, cren1.j)
+        if cren1.j == cren2.j-1 or cren1.j == cren2.j+1 :
+            test4_verified1 = self.test_4(worker1, cren2.i, cren2.j, except_j=cren1.j)
+            test4_verified2 = self.test_4(worker2, cren1.i, cren1.j, except_j=cren2.j)
+        else:
+            test4_verified1 = self.test_4(worker1, cren2.i, cren2.j)
+            test4_verified2 = self.test_4(worker2, cren1.i, cren1.j)
+
         test2_verified1 = self.test_2(worker1, cren2.i, cren2.j)
-        test3_verified1 = self.test_3(worker1, cren2.i, cren2.j)
-        test4_verified1 = self.test_4(worker1, cren2.i, cren2.j)
         test2_verified2 = self.test_2(worker2, cren1.i, cren1.j)
+        test3_verified1 = self.test_3(worker1, cren2.i, cren2.j)
         test3_verified2 = self.test_3(worker2, cren1.i, cren1.j)
-        test4_verified2 = self.test_4(worker2, cren1.i, cren1.j)
         if test1_verified1 and test2_verified1 and test3_verified1 and test4_verified1:
             if test1_verified2 and test2_verified2 and test3_verified2 and test4_verified2:
                 return [True]
