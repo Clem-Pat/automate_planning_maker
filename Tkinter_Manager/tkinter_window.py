@@ -1,7 +1,6 @@
 import sys
 import tkinter as tk
-from tkinter import ttk
-import numpy as np
+from tkinter import messagebox
 import os
 from Tkinter_Manager.tkinter_objects import Tkinter_button, Tkinter_label, Tkinter_canvas, Tkinter_checkbox, Tkinter_entry, Tkinter_scale, Tkinter_frame, Tkinter_menu
 
@@ -13,7 +12,7 @@ class Data():
         self.names = ['Alice', 'Clément', 'Tea', 'Tiphaine', 'Matthieu', 'Arthur', 'Guillaume', 'Zéphyr', 'Noé', 'Thibault', 'Bornier', 'Zoé', 'Benjamin', 'Marie', 'Baptiste', 'Romain']
         self.usernames = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon', 'Arthur Lanaspèze', 'Guillaume Kerjouan', 'Zéphyr Dentzer', 'Noé Parker', 'Thibault Edouard', 'Romain Rnrb', 'Zoé Laurent Iranmehr', 'Benjamin Langle', 'Marie Kintzinger', 'Baptiste Savarit', 'Romain Dupuis'] #username messenger to send private messages
         self.colors = ["#3FB2C1", "#9A5454", "#7030A0", "#00FF00", "#008000", "#8EA9DB", "#203764", "#305496", "#FF9900", "#FF00FF", "#CCA434", "#00FF9A", "#FFD700", "#C000C0", "#B22222", "#FF0000"]
-        self.admin = 'Tea'
+        self.admin = ['Tea']
         self.dispo_filename = f"{path[:-16]}/Data/indispo_dispo.xlsx"
         self.historic_filename = f"{path[:-16]}/Data/historic.xlsx"
         self.nbre_repetition = 5 #nombre de plannings dans l'échantillon à étudier. On ne gardera que le meilleur planning de l'échantillon
@@ -43,13 +42,14 @@ class Data():
         return resu2
 
 class Tkinter_window(tk.Tk):
-    def __init__(self, name_of_application, main_app=None):
+    def __init__(self, name_of_application, main_app=None, parent_app=None):
         tk.Tk.__init__(self)
         self.name = name_of_application
         self.main_app = main_app
         self.crens, self.jours = ['12h15-13h', '13h-13h30', '17h30-20h30', '20h30-23h', '23h-00h'], ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         if self.name == 'main':
             self.data = Data()
+            self.open_window = window_opener()
             self.x, self.y = 470, 0
             self.length, self.height = 800, 800
             self.title("Créateur de planning")
@@ -92,6 +92,20 @@ class Tkinter_window(tk.Tk):
             self.historic_modifications = []
             self.bind("<MouseWheel>", self._on_mousewheel)
             self.bind('<Control_L>z', self.ctrl_z)
+            self.bind('<Key>', self.listen_key)
+        
+        elif self.name == 'choose_receivers':
+            self.parent_app = parent_app
+            self.x, self.y = 25, 50
+            self.length, self.height = 750, 700
+            if sys.platform == 'darwin': self.length = 1100
+            self.title("Créateur de planning > Envoyer les messages")
+            self.labels = [Tkinter_label(self, i) for i in range(1)]
+            self.canvas = [Tkinter_canvas(self, i) for i in range(1)]
+            self.checkbox = [Tkinter_checkbox(self, i) for i in range(len(self.main_app.data.init_names))]
+            self.buttons = [Tkinter_button(self, i) for i in range(1)]
+            self.objects = [self.labels, self.canvas, self.checkbox, self.buttons]
+            self.order_to_kill = False
 
         self.destroyed = False
         self.configure(bg='light blue')
@@ -100,6 +114,8 @@ class Tkinter_window(tk.Tk):
         except: pass
         self.geometry(f'{self.length}x{self.height}+{self.x}+{self.y}')
         self.resizable(width=True, height=True)
+        self.bind('?', self.show_tips)
+        self.bind(',', self.show_tips)
         self.bind('<Double-Button-3>', self.get_mouse_position)
         self.bind('<Escape>', self.echap)
         self.protocol('WM_DELETE_WINDOW', self.kill)
@@ -126,7 +142,7 @@ class Tkinter_window(tk.Tk):
     def place_all_objects(self):
         for list_objects in self.objects:
             for object in list_objects:
-                if self.name == 'main' or (self.name == 'resu' and isinstance(object, Tkinter_button)):
+                if self.name == 'main' or (self.name == 'resu' and isinstance(object, Tkinter_button)) or self.name == 'choose_receivers':
                     object.place(x=object.x, y=object.y)
                 elif self.name == 'crens' :
                     object.grid(row=object.row, column=object.column, columnspan=object.columnspan, rowspan=object.rowspan, pady=object.pady, padx=object.padx)
@@ -169,3 +185,21 @@ class Tkinter_window(tk.Tk):
                 self.kill()
         else:
             self.kill()
+
+    def listen_key(self, *args):
+        if self.buttons[1].allow_key_order:
+            print(args[0].char,  args[0].char.lower())
+            if args[0].char.lower() == 'd':
+                self.buttons[1].send_mail(3)
+            elif args[0].char.lower() == 'p':
+                self.buttons[1].show_choose_receivers()
+
+    def show_tips(self, *args):
+        messagebox.showinfo('Tips', f"Pour faire dispaître un message d'erreur, vous pouvez double-cliquer dessus. \n\nPour aller à l'emplacement des fichiers Excels Output, vous pouvez cliquer sur le message d'info bleu. \n\nPour annuler le dernier échange : ctrl+Z \n\nPour tuer la fenêtre : Esc \n\nPour choisir les interlocuteurs : 'p' quand la souris est au dessus du bouton 'Envoyer les messages' \n\nPour envoyer en mode démo : 'd' quand la souris est au dessus du bouton 'Envoyer les messages'")
+
+
+class window_opener():
+    def __init__(self):
+        self.resu = False
+        self.cren = False
+        self.choose_receivers = False
