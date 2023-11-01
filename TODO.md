@@ -1,4 +1,4 @@
-### TODO
+# TODO
 
 ## Short term
     - Faire en sorte que l'utilisateur puisse importer un planning déjà créé
