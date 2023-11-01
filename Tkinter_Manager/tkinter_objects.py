@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
+# from tkinter import ttk
 from tkinter import messagebox
 import numpy as np
 import os
 import subprocess, sys
-from Planning_Manager.planning_manager import The_Planning_Maker, Planning_Filler, Creneau
+from Planning_Manager.planning_manager import The_Planning_Maker, Creneau
 from Sender_Manager.sender_manager import Message_sender
 from tkinter.filedialog import askopenfilename, askdirectory
 from PIL import ImageTk, Image
@@ -94,9 +94,12 @@ class Tkinter_button(tk.Button):
                 self.config(text='Envoyer les messages', width=20, height=2, bg=self.bg, fg=self.fg,
                             font='Arial 11 bold', relief=tk.RAISED, cursor=self.cursor)
                 self.x, self.y = 1150-offset_x, 630
+                self.allow_key_order = False
                 self.bind('<Button-1>', self.send_mail)
-                self.bind('<Button-2>', self.send_mail)
-                self.bind('<Button-3>', self.send_mail)
+                self.bind('<Button-2>', self.show_menu)
+                self.bind('<Button-3>', self.show_menu)
+                self.bind('<Enter>', self.set_allow_key_order)
+
             elif self.id >= 1000:
                 self.cursor, self.command = 'hand2', self.choose_directory
                 path = os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +112,16 @@ class Tkinter_button(tk.Button):
                 self.image = photo
                 self.caller.resu_filename = None
                 self.x, self.y = self.caller.x + 200, self.caller.y
+
+        elif self.app.name == 'choose_receivers':
+            if self.id == 0:
+                self.bg, self.fg, self.cursor, self.state = 'navy', 'white', 'hand2', 'unclicked'
+                self.config(text='Envoyer les messages', width=20, height=2, bg=self.bg, fg=self.fg,
+                            font='Arial 11 bold', relief=tk.RAISED, cursor=self.cursor)
+                self.x, self.y = 450, 500
+                self.bind('<Button-1>', self.ask_send_mail)
+                self.bind('<Button-2>', self.ask_send_mail)
+                self.bind('<Button-3>', self.ask_send_mail)
 
         elif isinstance(self.app, Tkinter_canvas):
             self.parent = self.app
@@ -134,11 +147,28 @@ class Tkinter_button(tk.Button):
                 self.config(fg=self.fg)
             except: pass
 
+    def print_ok(self, *args):
+        print('d pressed')
+
     def show_creneaux(self):
-        if self.state == 'unclicked': self.state = 'clicked'
+        self.app.open_window.cren = True
 
     def show_resu(self):
-        if self.state == 'unclicked': self.state = 'clicked'
+        self.app.open_window.resu = True
+
+    def show_choose_receivers(self, *args):
+        self.app.main_app.open_window.choose_receivers = True
+
+    def show_menu(self, *args):
+            text_admins = 'Personne' if len(self.app.main_app.data.admin) == 0 else ', '.join(self.app.main_app.data.admin) if len(self.app.main_app.data.admin) <= 1 else f"{', '.join(self.app.main_app.data.admin[:-1])} et {self.app.main_app.data.admin[-1]}"
+            m = tk.Menu(self.app, tearoff=0)
+            m.add_command(label="Choisir à qui envoyer les messages", command=self.show_choose_receivers)
+            m.add_separator()
+            m.add_command(label=f"Mode démo (envoi à {text_admins})", command=lambda : self.send_mail(3))
+            try:
+                m.tk_popup(args[0].x_root, args[0].y_root)
+            finally:
+                m.grab_release()
 
     def choose_file(self, *args):
         filename = str(askopenfilename())
@@ -286,6 +316,9 @@ class Tkinter_button(tk.Button):
         self.app.attributes('-topmost', True)
         self.app.attributes('-topmost', False)
 
+    def ask_send_mail(self, *args):
+        self.app.parent_app.buttons[1].send_mail(args[0])
+
     def send_mail(self, *args):
         try: order = args[0].num
         except: order = args[0]
@@ -294,48 +327,57 @@ class Tkinter_button(tk.Button):
             workers = self.app.main_app.planning.workers
             mode = ''
         elif int(order) == 2 or int(order) == 3 :
-            mode = f' - mode démo (envoi à {self.app.main_app.data.admin} seulement)'
+            text_admins = 'Personne' if len(self.app.main_app.data.admin) == 0 else ', '.join(self.app.main_app.data.admin) if len(self.app.main_app.data.admin) <= 1 else f"{', '.join(self.app.main_app.data.admin[:-1])} et {self.app.main_app.data.admin[-1]}"
+            mode = ' - mode démo '
+            if text_admins != 'Personne': mode += f'(envoi à {text_admins} seulement)'
+            workers = []
             for worker in self.app.main_app.planning.workers :
-                if worker.name == self.app.main_app.data.admin:
-                    workers = [worker]
-                    break
+                if worker.name in self.app.main_app.data.admin:
+                    workers.append(worker)
         self['relief'], self['bg'], self['fg'] = tk.SUNKEN, 'grey80', 'black'
         receivers, messages = [], []
         for worker in workers :
-            receivers.append(worker.username)
-            root_message = f'Hello {worker.name} !! Voici ton planning pour la semaine.\n\n'
-            messages.append(root_message)
-            worker.crens.sort()
-            for cren in worker.crens:
-                messages[-1] += cren.jour + ' ' + cren.type + '\n\n'
-            if self.app.main_app.data.soirees != ['none']:
-                messages[-1] += f'Cette semaine la soirée est'
-                for i in range(len(self.app.main_app.data.soirees)):
-                    if i == 0 : messages[-1] += f' {self.app.main_app.data.soirees[i]}'
-                    if i > 0 and i < len(self.app.main_app.data.soirees) - 1: messages[-1] += f', {self.app.main_app.data.soirees[i]}'
-                    if i > 0 and i == len(self.app.main_app.data.soirees) - 1: messages[-1] += f' et {self.app.main_app.data.soirees[i]}'
-                messages[-1] += '\n\n'
-        print(receivers)
+            if worker.username in self.app.main_app.data.usernames :
+                receivers.append(worker.username)
+                root_message = f'Hello {worker.name} !! Voici ton planning pour la semaine.\n\n'
+                messages.append(root_message)
+                worker.crens.sort()
+                for cren in worker.crens:
+                    messages[-1] += cren.jour + ' ' + cren.type + '\n\n'
+                if self.app.main_app.data.soirees != ['none']:
+                    messages[-1] += f'Cette semaine la soirée est'
+                    for i in range(len(self.app.main_app.data.soirees)):
+                        if i == 0 : messages[-1] += f' {self.app.main_app.data.soirees[i]}'
+                        if i > 0 and i < len(self.app.main_app.data.soirees) - 1: messages[-1] += f', {self.app.main_app.data.soirees[i]}'
+                        if i > 0 and i == len(self.app.main_app.data.soirees) - 1: messages[-1] += f' et {self.app.main_app.data.soirees[i]}'
+                    messages[-1] += '\n\n'
+        if receivers != []:
+            print(receivers)
+            self.app.label_error.show('Envoi automatique en cours' + mode, fg = 'black')
+            sender = Message_sender()
+            workers_aware = []
+            for i in range(len(receivers)):
+                if sender.stopped: break
+                sender.refresh_progress_bar((30+i)/(30+len(receivers)))
+                sender.send_message(receivers[i], messages[i])
+                workers_aware.append(workers[i])
+            sender.kill_progress_bar()
+            sender.kill_driver()
+            if sender.stopped :
+                message = 'Envois annulés. Voir la console'
+                if workers_aware == [] : print("Envois annulés. Aucun utilisateur n'a reçu de message")
+                else : print(f'Envois annulés. Seuls {workers_aware} ont reçu un message')
+            else :
+                message = 'Messages envoyés'
+                print(f'Messages envoyés à {workers_aware}')
+            self['relief'], self['bg'], self['fg'] = tk.RAISED, self.bg, self.fg
+            self.app.label_error.show(message)
+        else:
+            message = mode + "Aucune personne n'est à prévenir par message"
+            self.app.label_error.show(message)
 
-        self.app.label_error.show('Envoi automatique en cours' + mode, fg = 'black')
-        sender = Message_sender()
-        workers_aware = []
-        for i in range(len(receivers)):
-            if sender.stopped: break
-            sender.refresh_progress_bar((30+i)/(30+len(receivers)))
-            sender.send_message(receivers[i], messages[i])
-            workers_aware.append(workers[i])
-        sender.kill_progress_bar()
-        sender.kill_driver()
-        if sender.stopped :
-            message = 'Envois annulés. Voir la console'
-            if workers_aware == [] : print("Envois annulés. Aucun utilisateur n'a reçu de message")
-            else : print(f'Envois annulés. Seuls {workers_aware} ont reçu un message')
-        else :
-            message = 'Messages envoyés'
-            print(f'Messages envoyés à {workers_aware}')
-        self['relief'], self['bg'], self['fg'] = tk.RAISED, self.bg, self.fg
-        self.app.label_error.show(message)
+    def set_allow_key_order(self, *args):
+        self.allow_key_order = True
 
 class Tkinter_label(tk.Label):
     def __init__(self, application, id):
@@ -362,7 +404,7 @@ class Tkinter_label(tk.Label):
                 self.config(text="Jour de la soirée", bg='light blue', fg='navy', font='Arial 11 italic bold')
                 self.x, self.y = 390, 395
             elif self.id == 4:
-                self.config(text="Application créée par l'équipe Foy'z 25", bg='light blue', fg='navy', font='Arial 9 italic')
+                self.config(text="Application créée par l'équipe Foy'z 25 - Version 1.2", bg='light blue', fg='navy', font='Arial 9 italic')
                 self.x, self.y = 290, 745
             elif self.id == 5:
                 self.config(text="Taille de l'échantillon de plannings à étudier", bg='light blue', fg='navy', font='Arial 11 italic bold')
@@ -395,6 +437,11 @@ class Tkinter_label(tk.Label):
                 self.padx, self.pady = 2, 30
                 self.x, self.y = 1000, 6000
                 self.bind('<Double-Button-1>', self.hide)
+        elif self.app.name == 'choose_receivers':
+            self.config(bg='light blue')
+            if self.id == 0:
+                self.config(text='Créateur de planning : Envoyer les messages', fg='navy', font='Impact 28 bold')
+                self.x, self.y = 15, 20
         elif isinstance(self.app, Tkinter_canvas):
             self.parent = application
             if self.parent.name == 'planning_canvas':
@@ -447,11 +494,12 @@ class Tkinter_canvas(tk.Canvas):
                 self.app = parent
             except:
                 self.app = parent.master #le parent est la Frame, on veut donc le master du parent
-            if self.app.name == 'main':
+            if self.app.name == 'main' or self.app.name == 'choose_receivers':
                 if self.id == 0:
                     self.config(bg='white', height=535, width=277, relief='raised')
-                    self.x, self.y = 60, 195
-                    self.create_text(20, 20, anchor='w', text='Equipe',
+                    if self.app.name == 'main' : self.x, self.y, title = 60, 195, 'Equipe'
+                    elif self.app.name == 'choose_receivers' : self.x, self.y, title = 60, 105, 'Envoyer à...'
+                    self.create_text(20, 20, anchor='w', text=title,
                                      font='Arial 11 italic bold', fill='navy')
             elif self.app.name == 'resu':
                 if self.id == 0:
@@ -515,22 +563,56 @@ class Tkinter_checkbox(tk.Button):
             self.app = application.master
             self.jours, self.crens = self.app.jours, self.app.crens
 
-        if self.id in range(len(self.app.data.init_names)):
-            self.x, self.y = 75, 240 + self.id*30
-            self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa','black', 'black', 'hand2', 1, self.check
-            if sys.platform == 'darwin': self.fg, self.activefg = self.bg, self.activebg
-            self.text = self.app.data.names[self.id]
-            self.config(text=self.text, bg=self.activebg, fg=self.activefg, cursor=self.cursor, relief=tk.RAISED, command=self.command, font='Arial 10', width=30, height=1)
+        if hasattr(self.app, "data"): self.main_app = self.app
+        else: self.main_app = self.app.main_app
 
-    def check(self):
-        if self['bg'] == self.activebg:
-            self.config(bg=self.bg, fg=self.fg)
-            self.state = 0
-            self.app.data.names.pop(self.app.data.names.index(self.text))
-        else:
-            self.config(bg=self.activebg, fg=self.activefg)
-            self.state = 1
-            self.app.data.names.insert(self.id, self.text)
+        if self.id in range(len(self.main_app.data.init_names)):
+            if self.app.name == 'main': self.x, self.y = 75, 240 + self.id*30
+            elif self.app.name == 'choose_receivers': self.x, self.y = 75, 150 + self.id*30
+            if sys.platform == 'darwin': self.fg, self.activefg = self.bg, self.activebg
+            self.name = self.main_app.data.init_names[self.id]
+            self.username = self.main_app.data.usernames[self.id]
+            text_to_show = self.name
+            if self.name in self.main_app.data.admin: 
+                text_to_show = text_to_show + ' [admin]'
+            self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa','black', 'black', 'hand2', 1, self.check
+            if self.name not in self.main_app.data.names: 
+                self["state"] = "disabled"
+                self.activebg = '#dea4a5' 
+            self.config(text=text_to_show, bg=self.activebg, fg=self.activefg, cursor=self.cursor, relief=tk.RAISED, font='Arial 10', width=30, height=1)
+        
+        self.bind('<Button-1>', self.command)
+        self.bind('<Button-2>', self.command)
+        self.bind('<Button-3>', self.command)
+
+    def check(self, *args):
+        if self['state'] != 'disabled':
+            order = args[0].num
+            if order == 1:
+                if self['bg'] == self.activebg:
+                    self.config(bg=self.bg, fg=self.fg)
+                    self.state = 0
+                    if self.app.name == 'main': 
+                        self.main_app.data.names.pop(self.main_app.data.names.index(self.name))
+                    elif self.app.name == 'choose_receivers': 
+                        self.main_app.data.usernames.pop(self.main_app.data.usernames.index(self.username))
+                else:
+                    self.config(bg=self.activebg, fg=self.activefg)
+                    self.state = 1
+                    if self.app.name == 'main': 
+                        self.main_app.data.names.insert(self.id, self.name)
+                    elif self.app.name == 'choose_receivers': 
+                        self.main_app.data.usernames.insert(self.id, self.username)
+            else:
+                if '[admin]' in self['text'] : 
+                    self['text'] = self.name
+                    if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[self.id].name #modifier l'étiquette du main aussi
+                    self.main_app.data.admin.pop(self.main_app.data.admin.index(self.name))
+                else:
+                    self['text'] = self.name + ' [admin]'
+                    if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[self.id].name + ' [admin]' #modifier l'étiquette du main aussi
+                    self.main_app.data.admin.append(self.name)
+
 
 class Tkinter_entry(tk.Entry):
     def __init__(self, application, id):
@@ -730,6 +812,7 @@ class Tkinter_menu(tk.Menu):
                 helpmenu.add_command(label="Echanger deux personnes", command=lambda: self.help('swap_workers'))
                 helpmenu.add_command(label="Créer les fichiers Excel Output", command=lambda: self.help('create_excel'))
                 helpmenu.add_command(label="Envoyer les plannings par message", command=lambda: self.help('send_message'))
+                helpmenu.add_command(label="Choisir les interlocuteurs par message", command=lambda: self.help('choose_receivers'))
                 helpmenu.add_separator()
                 helpmenu.add_command(label="Tips", command=lambda: self.help('tips'))
                 self.add_cascade(label="Aide", menu=helpmenu)
@@ -752,8 +835,11 @@ class Tkinter_menu(tk.Menu):
             if order == 'create_excel':
                 messagebox.showinfo('Créer les Excels', "Si vous cliquez sur le bouton 'Créer les Excels', cela va créer trois fichiers Excel output avec des formats jugés utiles. L'emplacement est par défaut l'emplacement du dossier Data dans l'arborescence de cette application. Mais vous pouvez choisir un autre emplacement en cliquant sur le bouton \"Choisir l'emplacement\"")
             if order == 'send_message':
-                messagebox.showinfo('Envoyer les messages', f"Pour envoyer les plannings de chacun par messenger, cliquez sur le bouton 'envoyer par message'et ne touchez à rien. Vous pouvez annuler à tout moment en cliquant sur annuler. \n\nVous pouvez faire clic droit pour passer en mode démo et n'envoyer les messages qu'à l'admin (ici : {self.app.main_app.data.admin})")
+                text_admins = 'Personne' if len(self.app.main_app.data.admin) == 0 else ', '.join(self.app.main_app.data.admin) if len(self.app.main_app.data.admin) <= 1 else f"{', '.join(self.app.main_app.data.admin[:-1])} et {self.app.main_app.data.admin[-1]}"
+                messagebox.showinfo('Envoyer les messages', f"Pour envoyer les plannings de chacun par messenger, cliquez sur le bouton 'envoyer par message'et ne touchez à rien. Vous pouvez annuler à tout moment en cliquant sur annuler. \n\nVous pouvez faire clic droit puis 'Envoyer qu'à l'admin' pour passer en mode démo et n'envoyer les messages qu'aux admins (ici : {text_admins}) \n\n[Raccourci : 'd' comme démo lorsque la souris est au dessus du bouton]")
+            if order == 'choose_receivers':
+                messagebox.showinfo('Choisir les interlocuteurs', f"Pour choisir à qui envoyer les messages, il suffit de faire clic droit sur 'Envoyer les messages' puis 'Choisir à qui envoyer'. On peut changer qui l'admin, en rajouter, en enlever, ajouter des personnes à contacter, en enlever, etc. \n\n[Raccourci : 'p' comme paramètre lorsque la souris est au dessus du bouton]")
             if order == 'tips':
-                messagebox.showinfo('Tips', f"Pour faire dispaître un message d'erreur, vous pouvez double-cliquer dessus. \n\nPour aller à l'emplacement des fichiers Excels Output, vous pouvez cliquer sur le message d'info bleu. \n\nPour annuler le dernier échange vous pouvez faire ctrl+Z")
+                messagebox.showinfo('Tips', f"Pour faire dispaître un message d'erreur, vous pouvez double-cliquer dessus. \n\nPour aller à l'emplacement des fichiers Excels Output, vous pouvez cliquer sur le message d'info bleu. \n\nPour annuler le dernier échange : ctrl+Z \n\nPour tuer la fenêtre : Esc \n\nPour choisir les interlocuteurs : 'p' quand la souris est au dessus du bouton 'Envoyer les messages' \n\nPour envoyer en mode démo : 'd' quand la souris est au dessus du bouton 'Envoyer les messages'")
             self.app.attributes('-topmost', True)
             self.app.attributes('-topmost', False)
