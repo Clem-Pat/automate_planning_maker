@@ -52,9 +52,10 @@ class Data():
         return resu2
 
 
-class Tkinter_window(tk.Tk):
+class Tkinter_window(tk.Toplevel):
     def __init__(self, name_of_application, main_app=None, parent_app=None):
-        tk.Tk.__init__(self)
+        tk.Toplevel.__init__(self)
+        self.master.iconify()
         self.name = name_of_application
         self.main_app = main_app
         self.crens, self.jours = ['12h15-13h', '13h-13h30', '17h30-20h30', '20h30-23h', '23h-00h'], ['lundi', 'mardi',

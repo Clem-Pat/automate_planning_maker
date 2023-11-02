@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import time
+from unidecode import unidecode
 
 
 class Message_sender:
@@ -97,80 +98,67 @@ class Message_sender:
                 Keys.RETURN)  # selectionner l'interlocuteur
         time.sleep(3)
 
-    def send_message(self, user, message):
-        # self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[2]/div/div[2]/div/a/svg/path[1]').click()  #cliquer sur accepter vérification
-        ####
-        # self.driver.find_element("xpath",
-        #                          '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[2]/div/div/div').click()  # cliquer sur nv message
-        # time.sleep(2)
-        # self.driver.find_element("xpath",
-        #                          '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(
-        #     user)  # cliquer sur accepter vérification
-        # time.sleep(3)
-        # self.driver.find_element("xpath",
-        #                          '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(
-        #     Keys.ARROW_DOWN)
-        # self.driver.find_element("xpath",
-        #                          '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(
-        #     Keys.RETURN)  # selectionner l'interlocuteur
-        ####
-        try:
-            self.get_user_to_send_message_to(user)
-            time.sleep(3)
-            try:
-                self.driver.find_element("xpath",
-                                         '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[4]/div[2]/div/div/div[1]/p').send_keys(
-                    message)  # entrer le message
-            except :
-                self.driver.find_element("xpath",
-                                         '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div[4]/div[2]/div/div/div[1]/p').send_keys(
-                    message)  # entrer le message
+    def is_the_user_right(self, user):
+        """Verifie qu'on parle au bon utilisateur avant d'envoyer le message"""
+        #Récupère le titre de l'utilisateur 
+        text = self.driver.find_element("xpath",
+                                     "/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div/a/div[2]/div/div[1]/h1/span/span/span").text
+        #Compare le titre de l'utilisateur avec la commande "user"
+        user_enterred = unidecode(text).lower()
+        user_targeted = unidecode(user).lower()
+        user_targeted_list = user_targeted.split()
+        #Renvoie True s'il estime parler à la bonne personne
+        return True if sum(1 for word in user_targeted_list if word in user_enterred) == len(user_targeted_list) else False
 
-            time.sleep(3)
-        except :
-            print(f'message à {user} non envoyé')
+    def send_message(self, user, message):
+        self.get_user_to_send_message_to(user)
+        time.sleep(3)
+        user_is_the_right_user = self.is_the_user_right(user)
+        max_iter = 0
+        while not user_is_the_right_user and max_iter < 5:
+            max_iter += 1
+            self.get_user_to_send_message_to(user)
+            user_is_the_right_user = self.is_the_user_right(user)
+            time.sleep(1)
+        if user_is_the_right_user:
+            try:
+                try:
+                    self.driver.find_element("xpath",
+                                            '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[4]/div[2]/div/div/div[1]/p').send_keys(
+                        message)  # entrer le message
+                except :
+                    self.driver.find_element("xpath",
+                                            '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div[4]/div[2]/div/div/div[1]/p').send_keys(
+                        message)  # entrer le message
+                time.sleep(3)
+            except :
+                print(f'message à {user} non envoyé, une erreur est survenue')
+        else:
+            print(f'Impossible de trouver {user} dans les contacts')
 
     def send_gif(self, user, key_word_gif):
+        self.get_user_to_send_message_to(user)
         time.sleep(3)
-        # self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[2]/div/div[2]/div/a/svg/path[1]').click()  #cliquer sur accepter vérification
-        try: self.driver.find_element("xpath",
-                                 '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[1]/div/div/div/div[2]/div/div/div').click()  # cliquer sur nv message
-        except : pass
-        time.sleep(2)
-        try: self.driver.find_element("xpath",
-                                 '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(user)  # entrer le nom de l'interlocuteur
-        except: self.driver.find_element("xpath",
-                                 '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div/div/div/label/input').send_keys(user)
-        time.sleep(3)
-        try:
-            self.driver.find_element("xpath",
-                                 '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(
-            Keys.ARROW_DOWN)
-            self.driver.find_element("xpath",
-                                 '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div/div/div[1]/input').send_keys(
-            Keys.RETURN)  # selectionner l'interlocuteur
-        except :
-            self.driver.find_element("xpath",
-                                     '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div/div/div/label/input').send_keys(
-            Keys.ARROW_DOWN)
-            self.driver.find_element("xpath",
-                                     '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div/div/div/label/input').send_keys(
-                Keys.ARROW_DOWN)
-            self.driver.find_element("xpath",
-                                     '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div/div/div/label/input').send_keys(
-                Keys.RETURN)  # selectionner l'interlocuteur
-
-        time.sleep(3)
-        try:
-            self.driver.find_element("xpath",
-                             '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[3]/span/div/div').click()  # cliquer sur nv gif
-        except :
-            self.driver.find_element("xpath",
-                                     '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div[3]/span/div').click()  # cliquer sur nv gif
-        time.sleep(1)
-        self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div[1]/div/label/input').send_keys(key_word_gif) #taper le nom du gif
-        time.sleep(1)
-        self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div[2]/div/div[1]/div[1]/img').click()
+        user_is_the_right_user = self.is_the_user_right(user)
+        max_iter = 0
+        while not user_is_the_right_user and max_iter < 5:
+            max_iter += 1
+            self.get_user_to_send_message_to(user)
+            user_is_the_right_user = self.is_the_user_right(user)
+            time.sleep(1)
+        if user_is_the_right_user:
+            try:
+                self.driver.find_element("xpath",
+                                '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[3]/span/div/div').click()  # cliquer sur nv gif
+            except :
+                self.driver.find_element("xpath",
+                                        '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div[3]/span/div').click()  # cliquer sur nv gif
+            time.sleep(2)
+            self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div/label/input').send_keys(key_word_gif) #taper le nom du gif
+            time.sleep(1)
+            self.driver.find_element("xpath", '/html/body/div[1]/div/div/div/div[2]/div/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div[2]/div/div[1]/div[1]/img').click()
+        else:
+            print(f"Impossible de trouver {user} dans les contacts")
 
     def cancel(self):
         self.cancel_button['text'] = 'Arrêt en cours'
@@ -178,12 +166,14 @@ class Message_sender:
 
 if __name__ == '__main__':
     Bot = Message_sender()
-    for name in ['Benjamin Langle']:
-        Bot.send_message(name, 'Je suis un robot stylé enculé\n')
-        Bot.send_gif(name, 'simpson')
-    # # names = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon',
+    i = 0
+    for name in ['Clement Patrizio', 'Clement Patrizio', 'Clement Patrizio', 'Clement Patrizio']:
+        i += 1
+        Bot.send_message(name, f"{i/4}\n")
+        Bot.refresh_progress_bar(0.7*(i/4)+0.3)
+    # names = ['Alice Guyot', 'Clement Patrizio', 'Tea Toscan', 'Tiphaine Cal', 'Matthieu Drilhon',
     #                   'Arthur Lanaspèze', 'Guillaume Kerjouan', 'Zéphyr Dentzer', 'Noé Parker', 'Thibault Edouard',
     #                   'Romain Rnrb', 'Zoé Laurent Iranmehr', 'Benjamin Langle', 'Marie Kintzinger', 'Baptiste Savarit',
     #                   'Romain Dupuis']
     # for name in names:
-    #     Bot.send_message(name, 'Ceci est un message test\n')
+    #     Bot.send_message(name, "Hello, c'est encore une campagne de test, ne prends pas en compte ce que je vais dire aujourd'hui. Pardon pour les notifications inutiles...\n")

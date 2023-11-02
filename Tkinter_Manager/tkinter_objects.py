@@ -158,9 +158,6 @@ class Tkinter_button(tk.Button):
             except:
                 pass
 
-    def print_ok(self, *args):
-        print('d pressed')
-
     def show_creneaux(self):
         self.app.open_window.cren = True
 
@@ -168,6 +165,7 @@ class Tkinter_button(tk.Button):
         self.app.open_window.resu = True
 
     def show_choose_receivers(self, *args):
+        self['relief'], self['bg'], self['fg'] = tk.RAISED, self.bg, self.fg
         self.app.main_app.open_window.choose_receivers = True
 
     def show_menu(self, *args):
@@ -392,7 +390,7 @@ class Tkinter_button(tk.Button):
             workers_aware = []
             for i in range(len(receivers)):
                 if sender.stopped: break
-                sender.refresh_progress_bar((30 + i) / (30 + len(receivers)))
+                sender.refresh_progress_bar(0.7*(i/len(receivers))+0.3)
                 sender.send_message(receivers[i], messages[i])
                 workers_aware.append(workers[i])
             sender.kill_progress_bar()
