@@ -49,6 +49,13 @@ class Tkinter_button(tk.Button):
                             relief=tk.RAISED, cursor=self.cursor, command=self.command)
                 self.x, self.y, self.right_x = 2000, 665, 700
 
+            elif self.id == 3:
+                self.bg, self.fg, self.cursor, self.command, self.state = 'navy', 'white', 'hand2', self.import_planning, 'unclicked'
+                self.config(text='Importer planning', width=13, height=1, bg=self.bg, fg=self.fg,
+                            font='Arial 8',
+                            relief=tk.RAISED, cursor=self.cursor, command=self.command)
+                self.x, self.y, self.right_x = 710, 275, 700
+
             if self.id >= 1000:
                 self.cursor, self.command = 'hand2', self.choose_file
                 path = os.path.dirname(os.path.abspath(__file__))
@@ -133,10 +140,10 @@ class Tkinter_button(tk.Button):
         elif isinstance(self.app, Tkinter_canvas):
             self.parent = self.app
             self.app = self.parent.app
-            self.max_worker_in_cren = self.parent.max_worker_in_cren
+            self.max_worker_in_cren = self.app.main_app.data.get_max_worker_in_cren()
             if self.id < len(self.crens) * self.max_worker_in_cren:
                 workers_to_consider = [self.app.main_app.planning.resu_general[i][self.parent.id][k] for i in
-                                       range(len(self.crens)) for k in range(self.max_worker_in_cren)]
+                                       range(len(self.app.main_app.planning.resu_general)) for k in range(len(self.app.main_app.planning.resu_general[0][self.parent.id]))]
                 self.worker = workers_to_consider[self.id]
                 self.row, self.column = int(
                     self.id / self.max_worker_in_cren) + 2, self.id % self.max_worker_in_cren + 1
@@ -194,6 +201,9 @@ class Tkinter_button(tk.Button):
         self.caller.delete(0, tk.END)
         self.caller.insert(0, resu)
         self.caller.enter(value=filename)
+
+    def import_planning(self):
+        print('import plannning')
 
     def create_planning(self):
         self.app.planning_maker = The_Planning_Maker(self.app.data)
@@ -279,6 +289,13 @@ class Tkinter_button(tk.Button):
                         [self.app.first_worker_selected.jour, self.app.first_worker_selected.cren]), Creneau(
                         [self.jour, self.cren])
                     success = planning.test_swap(worker1, worker2, cren1, cren2)
+                    print('')
+                    print(worker1.name, worker1.crens, worker1.is_mefo)
+                    planning.test_5(worker1, cren2.i, cren2.j, printed=True)
+                    print(worker2.name, worker2.crens, worker2.is_mefo)
+                    planning.test_5(worker2, cren1.i, cren1.j, printed=True)
+                    print(success)
+                    print('')
                     if all(success):
                         planning.swap_cren(worker1, worker2, cren1, cren2)
                         self.app.first_worker_selected.worker = worker2
@@ -299,7 +316,9 @@ class Tkinter_button(tk.Button):
                                     f'{worker1.name} had already menage not a long time ago',
                                     f'{worker2.name} had already menage not a long time ago',
                                     f'{worker1.name} has already a cleaning the day before or the day after',
-                                    f'{worker2.name} has already a cleaning the day before or the day after']
+                                    f'{worker2.name} has already a cleaning the day before or the day after', 
+                                    f"{worker1.name} is a mefo, they can't have cren on a mefo day", 
+                                    f"{worker2.name} is a mefo, they can't have cren on a mefo day"]
                         self.app.label_error.show(messages[success.index(False)], fg='red', cursor='arrow',
                                                   file_to_open=None)
 
@@ -441,10 +460,13 @@ class Tkinter_label(tk.Label):
                 self.config(text="Jour de la soirée", bg='light blue', fg='navy', font='Arial 11 italic bold')
                 self.x, self.y = 390, 395
             elif self.id == 4:
+                self.config(text="Jour du Mefo", bg='light blue', fg='navy', font='Arial 11 italic bold')
+                self.x, self.y = 390, 465
+            elif self.id == 5:
                 self.config(text="Application créée par l'équipe Foy'z 25 - Version 1.2", bg='light blue', fg='navy',
                             font='Arial 9 italic')
                 self.x, self.y = 290, 745
-            elif self.id == 5:
+            elif self.id == 6:
                 self.config(text="Taille de l'échantillon de plannings à étudier", bg='light blue', fg='navy',
                             font='Arial 11 italic bold')
                 self.x, self.y = 390, 505
@@ -476,6 +498,13 @@ class Tkinter_label(tk.Label):
                 self.config(text='error_label', fg='red', font='Arial 13')
                 self.padx, self.pady = 2, 30
                 self.x, self.y = 1000, 6000
+                self.bind('<Double-Button-1>', self.hide)
+            elif self.id == 1001:
+                noms_mefos = ', '.join(self.app.main_app.data.mefos) if len(self.app.main_app.data.mefos) <= 1 else ', '.join(self.app.main_app.data.mefos[:-1]) + f' et {self.app.main_app.data.mefos[-1]}' if len(self.app.main_app.data.mefos) > 1 else ''
+                jour_mefo  = ', '.join(self.app.main_app.data.soirees_mefo) if len(self.app.main_app.data.soirees_mefo) <= 1 else ', '.join(self.app.main_app.data.soirees_mefo[:-1]) + f' et {self.app.main_app.data.soirees_mefo[-1]}' if len(self.app.main_app.data.soirees_mefo) > 1 else '' 
+                self.config(text=f'{noms_mefos} ont un créneau Mefo le {jour_mefo}', fg='navy', font='Arial 13')
+                self.padx, self.pady = 2, 30
+                self.x, self.y = 100, 520
                 self.bind('<Double-Button-1>', self.hide)
         elif self.app.name == 'choose_receivers':
             self.config(bg='light blue')
@@ -626,48 +655,63 @@ class Tkinter_checkbox(tk.Button):
             self.name = self.main_app.data.init_names[self.id]
             self.username = self.main_app.data.usernames[self.id]
             text_to_show = self.name
-            if self.name in self.main_app.data.admin:
-                text_to_show = text_to_show + ' [admin]'
-            self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state, self.command = '#dea4a5', '#a4deaa', 'black', 'black', 'hand2', 1, self.check
+            if self.name in self.main_app.data.admin: text_to_show = text_to_show + ' [admin]'
+            if self.name in self.main_app.data.mefos: text_to_show = text_to_show + ' [mefo]'
+            self.bg, self.activebg, self.fg, self.activefg, self.cursor, self.state = '#dea4a5', '#a4deaa', 'black', 'black', 'hand2', 1
             if self.name not in self.main_app.data.names:
                 self["state"] = "disabled"
                 self.activebg = '#dea4a5'
             self.config(text=text_to_show, bg=self.activebg, fg=self.activefg, cursor=self.cursor, relief=tk.RAISED,
                         font='Arial 10', width=30, height=1)
 
-        self.bind('<Button-1>', self.command)
-        self.bind('<Button-2>', self.command)
-        self.bind('<Button-3>', self.command)
+        self.bind('<Button-1>', self.check)
+        self.bind('<Button-2>', self.define_status)
+        self.bind('<Button-3>', self.define_status)
+
+    def define_status(self, *args):
+        m = tk.Menu(self.app, tearoff=0)
+        m.add_command(label="Admin", command=self.define_as_admin)
+        m.add_separator()
+        m.add_command(label=f"Mefo", command=self.define_as_mefo)
+        try:
+            m.tk_popup(args[0].x_root, args[0].y_root)
+        finally:
+            m.grab_release()
+
+    def define_as_admin(self):
+        if '[admin]' in self['text']:
+            self['text'] = self['text'].replace(' [admin]', '')
+            if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[self.id].name  # modifier l'étiquette du main aussi
+            self.main_app.data.admin.pop(self.main_app.data.admin.index(self.name))
+        else:
+            self['text'] = self['text'] + ' [admin]'
+            if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[self.id].name + ' [admin]'  # modifier l'étiquette du main aussi
+            self.main_app.data.admin.append(self.name)
+
+    def define_as_mefo(self):
+        if '[mefo]' in self['text']:
+            self['text'] = self['text'].replace(' [mefo]', '')
+            self.main_app.data.mefos.pop(self.main_app.data.mefos.index(self.name))
+        else:
+            self['text'] = self['text'] + ' [mefo]'
+            self.main_app.data.mefos.append(self.name)
 
     def check(self, *args):
         if self['state'] != 'disabled':
-            order = args[0].num
-            if order == 1:
-                if self['bg'] == self.activebg:
-                    self.config(bg=self.bg, fg=self.fg)
-                    self.state = 0
-                    if self.app.name == 'main':
-                        self.main_app.data.names.pop(self.main_app.data.names.index(self.name))
-                    elif self.app.name == 'choose_receivers':
-                        self.main_app.data.usernames.pop(self.main_app.data.usernames.index(self.username))
-                else:
-                    self.config(bg=self.activebg, fg=self.activefg)
-                    self.state = 1
-                    if self.app.name == 'main':
-                        self.main_app.data.names.insert(self.id, self.name)
-                    elif self.app.name == 'choose_receivers':
-                        self.main_app.data.usernames.insert(self.id, self.username)
+            if self['bg'] == self.activebg:
+                self.config(bg=self.bg, fg=self.fg)
+                self.state = 0
+                if self.app.name == 'main':
+                    self.main_app.data.names.pop(self.main_app.data.names.index(self.name))
+                elif self.app.name == 'choose_receivers':
+                    self.main_app.data.usernames.pop(self.main_app.data.usernames.index(self.username))
             else:
-                if '[admin]' in self['text']:
-                    self['text'] = self.name
-                    if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[
-                        self.id].name  # modifier l'étiquette du main aussi
-                    self.main_app.data.admin.pop(self.main_app.data.admin.index(self.name))
-                else:
-                    self['text'] = self.name + ' [admin]'
-                    if self.app.name != 'main': self.main_app.checkbox[self.id]['text'] = self.main_app.checkbox[
-                                                                                              self.id].name + ' [admin]'  # modifier l'étiquette du main aussi
-                    self.main_app.data.admin.append(self.name)
+                self.config(bg=self.activebg, fg=self.activefg)
+                self.state = 1
+                if self.app.name == 'main':
+                    self.main_app.data.names.insert(self.id, self.name)
+                elif self.app.name == 'choose_receivers':
+                    self.main_app.data.usernames.insert(self.id, self.username)
 
 
 class Tkinter_entry(tk.Entry):
@@ -692,17 +736,22 @@ class Tkinter_entry(tk.Entry):
                 self.value, self.default_value = self.app.data.historic_filename, self.app.data.historic_filename
             self.button = Tkinter_button(self.app.frame, 1000 + self.id, caller=self)
             self.button.place(x=self.button.x, y=self.button.y)
-        elif self.id == 2:
+        elif self.id >= 2:
+            if self.id == 2:
+                self.x, self.y = 390, 425
+                soirees = self.app.data.soirees
+            elif self.id == 3:
+                self.x, self.y = 390, 495
+                soirees = self.app.data.soirees_mefo
             resu = ''
-            for i in range(len(self.app.data.soirees)):
+            for i in range(len(soirees)):
                 if i == 0:
-                    resu += f'{self.app.data.soirees[i]}'
+                    resu += f'{soirees[i]}'
                 else:
-                    resu += f' - {self.app.data.soirees[i]}'
+                    resu += f' - {soirees[i]}'
             self.insert(0, resu)
-            self.x, self.y = 390, 425
-            self.value, self.default_value = self.app.data.soirees, self.app.data.soirees
-
+            self.value, self.default_value = soirees, soirees
+            
         self.bind('<Return>', self.enter)
         self.bind('<Button-1>', self.type)
         self.bind_all('<Key>', self.type)
@@ -746,7 +795,7 @@ class Tkinter_entry(tk.Entry):
                 self.config(fg='green')
                 self.app.labels[0].focus()
                 self.value = self.default_value
-        elif self.id == 2:
+        elif self.id >= 2:
             if self.get() != '' and self.get() != '/':
                 self.config(fg='green')
                 self.value = self.value.lower()
@@ -764,46 +813,49 @@ class Tkinter_entry(tk.Entry):
                     values = self.value.replace(' ', '').split('+')
                 else:
                     values = self.value.split(' ')
-
-                self.app.data.soirees = values
-                for i in range(len(self.app.jours)):
-                    if self.app.jours[i] not in self.app.data.soirees:
-                        if self.app.data.workers_per_cren[4][i] != 0:
-                            self.app.data.workers_per_cren[2][i] = 2
-                            self.app.data.workers_per_cren[3][i] = 2
-                            self.app.data.workers_per_cren[4][i] = 0
-                    else:
-                        for k in range(2, 5):
-                            self.app.data.workers_per_cren[k][i] = 3
-
-                # print('soiree =', self.app.data.soirees)
+                if self.id == 2:
+                    self.app.data.soirees = values
+                    for i in range(len(self.app.jours)):
+                        if self.app.jours[i] not in self.app.data.soirees:
+                            if self.app.data.workers_per_cren[4][i] != 0:
+                                self.app.data.workers_per_cren[2][i] = 2
+                                self.app.data.workers_per_cren[3][i] = 2
+                                self.app.data.workers_per_cren[4][i] = 0
+                        else:
+                            for k in range(2, 5):
+                                self.app.data.workers_per_cren[k][i] = 3
+                    soirees = self.app.data.soirees
+                elif self.id == 3:
+                    self.app.data.soirees_mefo = values
+                    soirees = self.app.data.soirees_mefo
                 resu = ''
-                for i in range(len(self.app.data.soirees)):
+                for i in range(len(soirees)):
                     if i == 0:
-                        resu += f'{self.app.data.soirees[i]}'
+                        resu += f'{soirees[i]}'
                     else:
-                        resu += f' - {self.app.data.soirees[i]}'
+                        resu += f' - {soirees[i]}'
                 self.delete(0, tk.END)
                 self.insert(0, resu)
                 self.app.labels[0].focus()
             else:
-                self.app.data.soirees = self.default_value
-                # print('soiree =', self.default_value)
+                if self.id == 2: self.app.data.soirees = self.default_value
+                elif self.id == 3: self.app.data.soirees_mefo = self.default_value
                 if self.default_value != ['none']:
                     indices = []
                     for day in self.default_value:
                         indices.append(self.app.jours.index(day))
                 else:
                     indices = [None]
-                for i in range(7):
-                    if i not in indices:
-                        if self.app.data.workers_per_cren[4][i] != 0:
-                            self.app.data.workers_per_cren[2][i] = 2
-                            self.app.data.workers_per_cren[3][i] = 2
-                            self.app.data.workers_per_cren[4][i] = 0
-                    else:
-                        for k in range(2, 5):
-                            self.app.data.workers_per_cren[k][i] = 3
+                if self.id == 2:
+                    for i in range(7):
+                        if i not in indices:
+                            if self.app.data.workers_per_cren[4][i] != 0:
+                                self.app.data.workers_per_cren[2][i] = 2
+                                self.app.data.workers_per_cren[3][i] = 2
+                                self.app.data.workers_per_cren[4][i] = 0
+                        else:
+                            for k in range(2, 5):
+                                self.app.data.workers_per_cren[k][i] = 3
                 resu = ''
                 for i in range(len(self.default_value)):
                     if i == 0:
@@ -925,9 +977,7 @@ class Tkinter_menu(tk.Menu):
                 messagebox.showinfo('Créer les Excels',
                                     "Si vous cliquez sur le bouton 'Créer les Excels', cela va créer trois fichiers Excel output avec des formats jugés utiles. L'emplacement est par défaut l'emplacement du dossier Data dans l'arborescence de cette application. Mais vous pouvez choisir un autre emplacement en cliquant sur le bouton \"Choisir l'emplacement\"")
             if order == 'send_message':
-                text_admins = 'Personne' if len(self.app.main_app.data.admin) == 0 else ', '.join(
-                    self.app.main_app.data.admin) if len(
-                    self.app.main_app.data.admin) <= 1 else f"{', '.join(self.app.main_app.data.admin[:-1])} et {self.app.main_app.data.admin[-1]}"
+                text_admins = 'Personne' if len(self.app.main_app.data.admin) == 0 else ', '.join(self.app.main_app.data.admin) if len(self.app.main_app.data.admin) <= 1 else f"{', '.join(self.app.main_app.data.admin[:-1])} et {self.app.main_app.data.admin[-1]}"
                 messagebox.showinfo('Envoyer les messages',
                                     f"Pour envoyer les plannings de chacun par messenger, cliquez sur le bouton 'envoyer par message'et ne touchez à rien. Vous pouvez annuler à tout moment en cliquant sur annuler. \n\nVous pouvez faire clic droit puis 'Envoyer qu'à l'admin' pour passer en mode démo et n'envoyer les messages qu'aux admins (ici : {text_admins}) \n\n[Raccourci : 'd' comme démo lorsque la souris est au dessus du bouton]")
             if order == 'choose_receivers':

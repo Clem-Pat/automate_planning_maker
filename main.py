@@ -38,5 +38,5 @@ if __name__ == '__main__':
 """
 issues and things to improve : 
     - Faire en sorte que l'utilisateur puisse importer un planning déjà créé
-    - Faire en sorte que le bot vérifie qu'il parle bien à la bonne personne. Il recommence la manoeuvre si ce n'est pas le cas
+        PB : Avec autant de créneaux, le planning peut ne pas trouver de personne disponible. Les remplacer par des 'None' pour éviter l'erreur list index out of range
 """

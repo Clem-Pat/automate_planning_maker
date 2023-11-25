@@ -8,7 +8,7 @@ from tkinter import ttk
 from Excel_Manager.excel_manager import Excel_Reader, Excel_Creator, Excel_Modifier
 
 class Worker():
-    def __init__(self, name, username=None, color="#FF0000", last_time_had_menage = 2.0, historic=[]):
+    def __init__(self, name, username=None, color="#FF0000", last_time_had_menage = 2.0, historic=[], mefos=[]):
         self.name = name
         self.color = color
         self.username = username
@@ -18,6 +18,9 @@ class Worker():
         self.last_time_had_menage = float(last_time_had_menage) #par défaut son dernier ménage date d'il y a 2 semaines
         self.crens = [] #list of Creneau()
         self.planning = []
+        self.is_mefo = self.name in mefos
+        if self.is_mefo :
+            print(self.name)
 
     def __repr__(self):
         return self.name
@@ -56,7 +59,7 @@ class Worker():
         return self.name >= other.name
 
 class Creneau():
-    def __init__(self, name, soirees=['none']):
+    def __init__(self, name, soirees=['none'], soiree_mefo='none'):
         """ représente un créneau
             name = ['lundi', '12h15-13h']       'm1'
             name = [1, 2] => mardi 17h30-20h30  's1'
@@ -71,8 +74,16 @@ class Creneau():
                 self.jour, self.cren = name[0], name[1]
                 self.j, self.i = self.jours.index(self.jour), self.crens.index(self.cren)
         elif isinstance(name, str):
-            self.jour, self.cren = name.split(' ')[0], name.split(' ')[1]
-            self.j, self.i = self.jours.index(self.jour), self.crens.index(self.cren)
+            if 'mefo' in name:
+                if any(jour in name for jour in self.jours): #Si name = 'mercredi mefo'
+                    self.jour, self.cren = name.split(' ')[0], 'mefo'
+                    self.j, self.i = self.jours.index(self.jour), -1
+                else: #Si name = 'mefo'
+                    self.jour, self.cren = soiree_mefo, 'mefo'
+                    self.j, self.i = self.jours.index(self.jour), -1
+            else:
+                self.jour, self.cren = name.split(' ')[0], name.split(' ')[1]
+                self.j, self.i = self.jours.index(self.jour), self.crens.index(self.cren)
 
         if self.i == 0 and self.j != 6: self.type, self.coeff, self.exact_time, self.color = 'm1', 0.5, '12h15-13h', '#fbbc04'
         elif self.i == 1 :
@@ -84,6 +95,7 @@ class Creneau():
             else : self.type, self.coeff, self.exact_time, self.color = 's2', 2, '20h30-23h + ménage', '#34a853'
         elif self.i == 4: self.type, self.coeff, self.exact_time, self.color = 's3', 2, '22h30-00h + ménage', '#ff00ff'
         elif self.i == 0 and self.j == 6 : self.type, self.coeff, self.exact_time, self.color = 'menage', 2, 'Ménage', '#b4a7d6'
+        elif self.i == -1 : self.type, self.coeff, self.exact_time, self.color = 'mefo', 2, 'Mefo', '#FFFF00'
         else: self.type, self.coeff, self.exact_time = 'unknown', 0, 'unknown'
         self.text = self.type.upper() + ' ' + self.exact_time
 
@@ -128,6 +140,7 @@ class Planning_Filler():
         self.workers_to_visit = np.copy(self.workers) #a copy of workers that we can sort in any way
         self.crens, self.jours = ['12h15-13h', '13h-13h30', '17h30-20h30', '20h30-23h', '23h-00h'], ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         self.soirees = self.data.soirees
+        self.soirees_mefo = self.data.soirees_mefo
         self.occurences_workers = {worker: 0 for worker in self.workers}
         if copy != None:
             self.resu_general = copy.resu_general
@@ -138,6 +151,7 @@ class Planning_Filler():
             else :
                 self.resu_general = [[[] for j in range(len(self.jours))] for i in range(len(self.crens))]
                 self.fill_another_worker_on_party_and_menage_cren = False
+                self.fill_mefos()
             self.none_worker = Worker('None', color = "#C0C0C0")
             self.fill_planning()
             self.equalizing()
@@ -212,6 +226,20 @@ class Planning_Filler():
                 break
         return nbre_of_modifications
 
+    def fill_mefos(self):
+        if self.soirees_mefo != ['none']:
+            for worker in self.workers:
+                if worker.is_mefo :
+                    for soiree in self.soirees_mefo:
+                        print('---------', worker.name)
+                        if worker.name == 'Noé': self.resu_general[2][2].append(worker)
+                        if worker.name == 'Thibault': self.resu_general[3][2].append(worker)
+                        cren = Creneau("mefo", self.soirees, soiree_mefo=soiree)
+                        worker.crens.append(cren)
+                        self.occurences_workers[worker] += 1
+                        worker.historic += cren.coeff
+                print(worker.crens)
+
     def fill_planning(self):
         if self.layer == 1 :
             for k in range(len(self.workers_latest_menage)):
@@ -224,8 +252,8 @@ class Planning_Filler():
                     self.fill_planning_case(i, j)
                 else:
                     self.resu_general[i][j].append(self.none_worker)
-        self.sorted_workers_dic = self.get_workers_most_working()
-        self.sorted_workers = list(self.sorted_workers_dic.keys())
+                self.sorted_workers_dic = self.get_workers_most_working()
+                self.sorted_workers = list(self.sorted_workers_dic.keys())
 
     def test_1(self, worker_to_affect, i, j):
         """name has already a job in the day ?"""
@@ -259,6 +287,10 @@ class Planning_Filler():
                             return False
         return True
 
+    def test_5(self, worker_to_affect, i, j, printed=False):
+        """si on parle d'un créneau du soir lors du mefo et que le worker est un mefo, il ne peut pas prendre le créneau"""
+        return not(self.jours[j] in self.soirees_mefo and worker_to_affect.is_mefo)
+
     def test_swap(self, worker1, worker2, cren1, cren2):
         if cren1.j == cren2.j:
             test1_verified1, test1_verified2 = True, True
@@ -276,12 +308,14 @@ class Planning_Filler():
         test2_verified2 = self.test_2(worker2, cren1.i, cren1.j)
         test3_verified1 = self.test_3(worker1, cren2.i, cren2.j)
         test3_verified2 = self.test_3(worker2, cren1.i, cren1.j)
-        if test1_verified1 and test2_verified1 and test3_verified1 and test4_verified1:
-            if test1_verified2 and test2_verified2 and test3_verified2 and test4_verified2:
+        test5_verified1 = self.test_5(worker1, cren2.i, cren2.j)
+        test5_verified2 = self.test_5(worker2, cren1.i, cren1.j)
+        if test1_verified1 and test2_verified1 and test3_verified1 and test4_verified1 and test5_verified1:
+            if test1_verified2 and test2_verified2 and test3_verified2 and test4_verified2 and test5_verified2:
                 return [True]
-        return [test1_verified1, test1_verified2, test2_verified1, test2_verified2, test3_verified1, test3_verified2, test4_verified1, test4_verified2]
+        return [test1_verified1, test1_verified2, test2_verified1, test2_verified2, test3_verified1, test3_verified2, test4_verified1, test4_verified2, test5_verified1, test5_verified2]
 
-    def fill_planning_case(self, i, j, worker=None, affect_cren_to_worker=True, test_1_verified=False, test_2_verified=False, test_3_verified=False, test_4_verified=False):
+    def fill_planning_case(self, i, j, worker=None, affect_cren_to_worker=True, test_1_verified=False, test_2_verified=False, test_3_verified=False, test_4_verified=False, test_5_verified=False):
         """
         We can specify a worker to know if the cren would fit the worker. If it does, we can choose if the function does the affectation itself or not.
         Plus, by specifying in args that test_1_verified is True, it makes all the tests but the test_1. Usefull if we want to swap crens from same day."""
@@ -289,7 +323,7 @@ class Planning_Filler():
         list_of_workers_in_priority = self.find_prority_worker()
         if worker == None :  #If we are not trying to fill in the date with a particular worker, we find one that fits the conditions
             n_workers = -1
-            while not(test_1_verified) or not(test_2_verified) or not(test_3_verified) or not(test_4_verified):
+            while not(test_1_verified) or not(test_2_verified) or not(test_3_verified) or not(test_4_verified) or not(test_5_verified):
                 n_workers += 1
                 if n_workers >= len(list_of_workers_in_priority):
                     # print(self.jours[j], self.crens[i], 'No worker fits the conditions !!')
@@ -300,6 +334,7 @@ class Planning_Filler():
                     test_2_verified = self.test_2(worker_to_affect, i, j)
                     test_3_verified = self.test_3(worker_to_affect, i, j)
                     test_4_verified = self.test_4(worker_to_affect, i, j)
+                    test_5_verified = self.test_5(worker_to_affect, i, j)
             if affect_cren_to_worker:
                 self.resu_general[i][j].append(worker_to_affect)
                 creneau = Creneau([j, i], self.soirees)
@@ -314,7 +349,8 @@ class Planning_Filler():
             if not(test_2_verified) : test_2_verified = self.test_2(worker_to_affect, i, j)
             if not(test_3_verified) : test_3_verified = self.test_3(worker_to_affect, i, j)
             if not(test_4_verified) : test_4_verified = self.test_4(worker_to_affect, i, j)
-            if test_1_verified and test_2_verified and test_3_verified and test_4_verified:
+            if not(test_5_verified) : test_5_verified = self.test_5(worker_to_affect, i, j)
+            if test_1_verified and test_2_verified and test_3_verified and test_4_verified and test_5_verified:
                 if affect_cren_to_worker: #the user wants th function to do the affectation itself
                     self.resu_general[i][j].append(worker_to_affect)
                     creneau = Creneau([j, i], self.soirees)
@@ -344,15 +380,12 @@ class Planning_Filler():
         return resu
 
     def swap_cren(self, worker, worker2, cren1, cren2):
-        # print(f'changing : {worker.name} takes {cren2} and {worker2.name} takes {cren1}')
         self.fill_planning_case(cren1.i, cren1.j, worker2, test_1_verified=True, test_2_verified=True, test_3_verified=True, test_4_verified=True)
         self.fill_planning_case(cren2.i, cren2.j, worker, test_1_verified=True, test_2_verified=True, test_3_verified=True, test_4_verified=True)
         self.take_out_cren_from_worker(worker, cren1)
         self.take_out_cren_from_worker(worker2, cren2)
         self.coeffs_workers = self.get_coeffs_workers()
-        # print(f'{worker.name} : {worker.crens}\n{worker2.name} : {worker2.crens}')
-        # print('equalized between', worker.name, 'and', worker2.name,self.coeffs_workers[worker], self.coeffs_workers[worker2])
-
+        
     def equalizing(self):
         def equalizing_process(workers2_to_consider, worker):
             for worker2 in workers2_to_consider:
@@ -516,7 +549,7 @@ class The_Planning_Maker():
         return resu
 
     def find_best_planning(self):
-        workers = [Worker(self.names[i], username=self.data.usernames[i], color=self.data.colors[i], last_time_had_menage=self.last_time_had_menage[i], historic=self.historic[i]) for i in range(len(self.names))]
+        workers = [Worker(self.names[i], username=self.data.usernames[i], color=self.data.colors[i], last_time_had_menage=self.last_time_had_menage[i], historic=self.historic[i], mefos=self.data.mefos) for i in range(len(self.names))]
         self.max_worker_in_cren = max([max(self.data.workers_per_cren[i]) for i in range(len(self.data.workers_per_cren))])
         planning_kept = Planning_Filler(workers, self.data, 1, availabilities=self.availabilities, workers_latest_menage=self.workers_latest_menage, last_time_had_most_crens=self.last_time_had_most_crens)
         for j in range(self.max_worker_in_cren-1):
@@ -524,7 +557,7 @@ class The_Planning_Maker():
 
         for i in range(self.total_attempt):
             self.refresh_progress_bar(i/self.total_attempt)
-            workers = [Worker(self.names[i], username=self.data.usernames[i], color=self.data.colors[i], last_time_had_menage=self.last_time_had_menage[i], historic=self.historic[i]) for i in
+            workers = [Worker(self.names[i], username=self.data.usernames[i], color=self.data.colors[i], last_time_had_menage=self.last_time_had_menage[i], historic=self.historic[i], mefos=self.data.mefos) for i in
                        range(len(self.names))]
             planning = Planning_Filler(np.copy(workers), self.data, 1, availabilities=self.availabilities, workers_latest_menage=self.workers_latest_menage, last_time_had_most_crens=self.last_time_had_most_crens)
             for j in range(self.max_worker_in_cren - 1):

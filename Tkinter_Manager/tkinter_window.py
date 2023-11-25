@@ -22,10 +22,12 @@ class Data():
         self.colors = ["#3FB2C1", "#9A5454", "#7030A0", "#00FF00", "#008000", "#8EA9DB", "#203764", "#305496",
                        "#FF9900", "#FF00FF", "#CCA434", "#00FF9A", "#FFD700", "#C000C0", "#B22222", "#FF0000"]
         self.admin = ['Tea']
+        self.mefos = ['Noé', 'Thibault']
         self.dispo_filename = f"{path[:-16]}/Data/indispo_dispo.xlsx"
         self.historic_filename = f"{path[:-16]}/Data/historic.xlsx"
         self.nbre_repetition = 5  # nombre de plannings dans l'échantillon à étudier. On ne gardera que le meilleur planning de l'échantillon
         self.soirees = ['none']
+        self.soirees_mefo = ['mercredi']
         self.workers_per_cren = [[2, 2, 2, 0, 2, 0, 3], [2, 2, 2, 2, 2, 0, 0], [2, 2, 2, 2, 2, 2, 2],
                                  [2, 2, 2, 2, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0]]
         self.max_worker_in_cren = self.get_max_worker_in_cren()
@@ -68,15 +70,15 @@ class Tkinter_window(tk.Toplevel):
             self.data = Data()
             self.open_window = window_opener()
             self.x, self.y = 470, 0
-            self.length, self.height = 800, 800
+            self.length, self.height = 810, 800
             self.title("Créateur de planning")
             self.frame = Tkinter_frame(self, 0)
-            self.buttons = [Tkinter_button(self.frame, i) for i in range(3)]
-            self.labels = [Tkinter_label(self.frame, i) for i in range(5)]
+            self.buttons = [Tkinter_button(self.frame, i) for i in range(4)]
+            self.labels = [Tkinter_label(self.frame, i) for i in range(6)]
             self.scales = [Tkinter_scale(self.frame, i) for i in range(0)]
             self.canvas = [Tkinter_canvas(self.frame, i) for i in range(1)]
             self.checkbox = [Tkinter_checkbox(self.frame, i) for i in range(len(self.data.init_names))]
-            self.entrys = [Tkinter_entry(self.frame, i) for i in range(3)]
+            self.entrys = [Tkinter_entry(self.frame, i) for i in range(4)]
             self.menu = [Tkinter_menu(self, i) for i in range(1)]
             self.objects = [self.buttons, self.labels, self.canvas, self.checkbox, self.entrys, self.scales]
             self.offset, self.frame_y, self.frame_y_init = 0, 0, 0
@@ -99,6 +101,7 @@ class Tkinter_window(tk.Toplevel):
             self.frame = Tkinter_frame(self, 0)
             self.first_worker_selected = None
             self.label_error = Tkinter_label(self, 1000)
+            self.label_mefo  = Tkinter_label(self, 1001)
             self.canvas = [Tkinter_canvas(self.frame, i) for i in range(2)]
             self.buttons = [Tkinter_button(self, i) for i in range(2)]
             self.labels = [Tkinter_label(self.frame, i) for i in range(1)]
@@ -135,7 +138,6 @@ class Tkinter_window(tk.Toplevel):
         self.resizable(width=True, height=True)
         self.bind('?', self.show_tips)
         self.bind(',', self.show_tips)
-        self.bind('<Double-Button-3>', self.get_mouse_position)
         self.bind('<Escape>', self.echap)
         self.protocol('WM_DELETE_WINDOW', self.kill)
 
@@ -174,6 +176,7 @@ class Tkinter_window(tk.Toplevel):
                         object.pack()
         if self.name == 'resu':
             self.label_error.place(x=self.label_error.x, y=self.label_error.y)
+            if self.main_app.data.soirees_mefo != ['none']: self.label_mefo.place(x=self.label_mefo.x, y=self.label_mefo.y)
 
     def get_mouse_position(*args):
         print(args[1].x, args[1].y)
