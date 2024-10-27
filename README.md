@@ -1,7 +1,9 @@
 
 # Planning Creator
 
-This project is a full-python application creating a planning for a team of bartenders. This project answers the school bar's needs: automating the secretary's process of creating plannings. 
+This project is a full-python application that creates a plan for a team of bartenders. It answers the school bar's need by automating the secretary's process of creating planning. 
+
+This is a personal two-month project. 
 
 
 ## Demo
@@ -13,7 +15,7 @@ This project is a full-python application creating a planning for a team of bart
 
 - Someone cannot have two time slots on the same day.
 
-- Someone cannot have a time slot at a time when they are unavailable.
+- Someone cannot have a time slot when they are unavailable.
 
 - There cannot be two cleaning tasks in a row.
 
@@ -21,13 +23,13 @@ This project is a full-python application creating a planning for a team of bart
 
 - Everyone has the same number of time slots and balanced coefficients. If someone has more time slots than others, it is because they had more slots a long time ago compared to the others. (last_Foyz_fucked)
 
-- Specific to this version: The "mefos" cannot have a time slot on "mefo" day. However, the "mefos" are not considered as time slots. Therefore, they will have the same number of slots as others PLUS their "mefo" evening. TODO: Ensure they have fewer slots (this will be addressed in the next version, but currently, there's a bug where the computer often adds people to S3 on "mefo" evenings even when it is not necessary).
+- Specific to this version: The "mefos" cannot have a time slot on "mefo" day. However, the "mefos" are not considered time slots. Therefore, they will have the same number of slots as others PLUS their "mefo" evening. TODO: Ensure they have fewer slots (this will be addressed in the next version, but currently, there's a bug where the computer often adds people to S3 on "mefo" evenings even when it is unnecessary).
 
 ## New Features in Version 1.3
 
-- The team is no longer limited to "Foy'z 25" but can be any team whose members are specified in the "Team-data.xlsx" Excel file.
+- The team is no longer limited to "Foy'z 25" but can be any team with members' names specified in the "Team-data.xlsx" Excel file.
 
-- The "mefos" can be specified in the Excel file or in the application. They will not be assigned a time slot on "mefo" day. TODO: Ensure they have fewer slots (See TODO.md).
+- The "mefos" can be specified in the Excel file or the application. They will not be assigned a time slot on "mefo" day. TODO: Ensure they have fewer slots (See TODO.md).
 
 
 ## Format of Compatible Excel Files
