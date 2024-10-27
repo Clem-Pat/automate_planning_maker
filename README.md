@@ -35,9 +35,12 @@ This project is a full-python application creating a planning for a team of bart
 #### Unavailability File (Fichier des indispos)
 
 - First solution
+  
 ![App Screenshot](/Ressources/Readme_ressources/indispo_screen.png)
 ####
+
 - Second solution
+  
 ![App Screenshot](/Ressources/Readme_ressources/indispo_screen2.png)
 ####
 
@@ -74,8 +77,11 @@ pip install pillow
 
 <table>
   <tr>
-    <td><img src="/Ressources/foyz1.png" alt="Image 1" width="300"/></td>
-    <td><img src="/Ressources/Foyz (1).ico" alt="Image 1" width="300"/></td>
+    <td><img src="/Ressources/foyz1.png" alt="Image 1" width="100"/></td>
+    <td><img src="/Ressources/Foyz (1).ico" alt="Image 1" width="100"/></td>
+  </tr>
+  <tr>
+    <td> BDE ENSTA Bretagne (Club Foy'z) </td>
     <td> Foy'z 25 team</td>
   </tr>
 </table>
