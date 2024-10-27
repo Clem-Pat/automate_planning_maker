@@ -25,7 +25,8 @@ This is a personal two-month project.
 
 - Specific to this version: The "mefos" cannot have a time slot on "mefo" day. However, the "mefos" are not considered time slots. Therefore, they will have the same number of slots as others PLUS their "mefo" evening. TODO: Ensure they have fewer slots (this will be addressed in the next version, but currently, there's a bug where the computer often adds people to S3 on "mefo" evenings even when it is unnecessary).
 
-## New Features in Version 1.3
+
+## New Features in Version 1.4
 
 - The team is no longer limited to "Foy'z 25" but can be any team with members' names specified in the "Team-data.xlsx" Excel file.
 
